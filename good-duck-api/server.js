@@ -80,7 +80,7 @@ const Product = mongoose.model("Product", productSchema);
 const User = mongoose.model("User", userSchema);
 const Order = mongoose.model("Order", orderSchema);
 
-// สร้างหมวดหมู่เริ่มต้นใน MongoDB อัตโนมัติถ้ายังไม่มี
+// สร้างหมวดหมู่เริ่มต้นใน MongoDB อัตโนมัติถ้ายังไม่มี (ไม่กระทบสินค้าเดิม)
 async function syncInitialCategories() {
   const count = await Category.countDocuments();
   if (count > 0) return;
@@ -159,7 +159,7 @@ app.post("/api/auth/login", async (req, res) => {
 });
 
 // ==========================================
-// 5. Routes: Categories
+// 5. Routes: Categories (ลูกค้าดูได้ / Admin เพิ่ม-แก้ชื่อ-ลบได้)
 // ==========================================
 app.get("/api/categories", async (req, res) => {
   try {
