@@ -13,6 +13,11 @@ function escapeHtml(str) {
     .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
+function formatCatLabel(c) {
+  const icon = (c.icon || "").trim();
+  return icon ? `${escapeHtml(icon)} ${escapeHtml(c.name)}` : escapeHtml(c.name);
+}
+
 function getAuth() {
   try { return JSON.parse(localStorage.getItem("goodduck_auth") || "null"); }
   catch { return null; }
@@ -69,7 +74,7 @@ function renderCategoryFilters() {
   const buttons = [
     `<button class="btn btn-cat ${currentCategory === "ทั้งหมด" ? "active" : ""}" data-cat="ทั้งหมด">ทั้งหมด</button>`,
     ...allCategories.map(
-      (c) => `<button class="btn btn-cat ${currentCategory === c.name ? "active" : ""}" data-cat="${escapeHtml(c.name)}">${escapeHtml(c.icon || "🦆")} ${escapeHtml(c.name)}</button>`
+      (c) => `<button class="btn btn-cat ${currentCategory === c.name ? "active" : ""}" data-cat="${escapeHtml(c.name)}">${formatCatLabel(c)}</button>`
     ),
   ];
   wrap.innerHTML = buttons.join("");
@@ -87,7 +92,7 @@ function renderCategorySelect() {
   const select = document.getElementById("pf-category");
   if (!select) return;
   select.innerHTML = allCategories
-    .map((c) => `<option value="${escapeHtml(c.name)}">${escapeHtml(c.icon || "🦆")} ${escapeHtml(c.name)}</option>`)
+    .map((c) => `<option value="${escapeHtml(c.name)}">${formatCatLabel(c)}</option>`)
     .join("");
 }
 
@@ -104,8 +109,8 @@ function renderAdminCategories() {
     .map(
       (c) => `
       <div class="d-inline-flex align-items-center gap-2 px-3 py-2 rounded-pill border bg-light">
-        <span class="fw-semibold">${escapeHtml(c.icon || "🦆")} ${escapeHtml(c.name)}</span>
-        <button type="button" class="btn btn-sm btn-outline-warning py-0 px-2" title="เปลี่ยนชื่อหมวดหมู่" onclick="editCategory('${c._id}', '${escapeHtml(c.name)}', '${escapeHtml(c.icon || "🦆")}')">
+        <span class="fw-semibold">${formatCatLabel(c)}</span>
+        <button type="button" class="btn btn-sm btn-outline-warning py-0 px-2" title="เปลี่ยนชื่อหมวดหมู่" onclick="editCategory('${c._id}', '${escapeHtml(c.name)}', '${escapeHtml(c.icon || "")}')">
           <i class="bi bi-pencil-fill"></i>
         </button>
         <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2" title="ลบหมวดหมู่" onclick="deleteCategory('${c._id}', '${escapeHtml(c.name)}')">
@@ -122,7 +127,7 @@ document.getElementById("category-add-form")?.addEventListener("submit", async (
   if (!auth?.token) return alert("กรุณาเข้าสู่ระบบ Admin ก่อน");
 
   const name = document.getElementById("new-cat-name").value.trim();
-  const icon = document.getElementById("new-cat-icon").value.trim() || "🦆";
+  const icon = document.getElementById("new-cat-icon").value.trim();
   if (!name) return;
 
   const res = await fetch(`${API_BASE}/categories`, {
@@ -137,6 +142,7 @@ document.getElementById("category-add-form")?.addEventListener("submit", async (
   if (!res.ok) return alert(data.message || "เพิ่มหมวดหมู่ไม่สำเร็จ");
 
   document.getElementById("new-cat-name").value = "";
+  document.getElementById("new-cat-icon").value = "";
   await fetchCategories();
 });
 
