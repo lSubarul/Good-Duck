@@ -182,13 +182,14 @@ document.getElementById("checkout-form").addEventListener("submit", async (e) =>
 
   const auth = getAuth();
   if (!auth?.token) {
-    alert("กรุณาเข้าสู่ระบบก่อนทำการสั่งซื้อ");
-    new bootstrap.Modal(document.getElementById("authModal")).show();
+    const cartEl = document.getElementById("cartOffcanvas");
+    bootstrap.Offcanvas.getInstance(cartEl)?.hide();
+    new bootstrap.Modal(document.getElementById("loginRequiredModal")).show();
     return;
   }
 
   const payload = {
-    customerName: document.getElementById("order-name").value.trim(),
+    customerName: auth.username,
     customerPhone: document.getElementById("order-phone").value.trim(),
     note: document.getElementById("order-note").value.trim(),
     items: cart.map((c) => ({ productId: c.productId, qty: c.qty })),
@@ -212,6 +213,11 @@ document.getElementById("checkout-form").addEventListener("submit", async (e) =>
   fetchProducts();
 });
 
+document.getElementById("btn-go-login")?.addEventListener("click", () => {
+  bootstrap.Modal.getInstance(document.getElementById("loginRequiredModal"))?.hide();
+  new bootstrap.Modal(document.getElementById("authModal")).show();
+});
+
 // ==========================================
 // 4. ระบบ Login / Register & แยกสิทธิ์ Admin
 // ==========================================
@@ -220,11 +226,13 @@ function syncAuthUI() {
   const authWrap = document.getElementById("auth-btn-wrap");
   const adminNav = document.getElementById("admin-nav-item");
   const adminPanel = document.getElementById("admin-panel");
+  const userInfo = document.getElementById("checkout-user-info");
 
   if (!auth) {
     authWrap.innerHTML = `<button class="btn btn-cowboy" data-bs-toggle="modal" data-bs-target="#authModal"><i class="bi bi-person-circle me-1"></i>เข้าสู่ระบบ</button>`;
     adminNav.classList.add("d-none");
     adminPanel.classList.add("d-none");
+    if (userInfo) userInfo.innerHTML = `<i class="bi bi-info-circle me-1"></i>กรุณาเข้าสู่ระบบก่อนกดสั่งซื้อ`;
     return;
   }
 
@@ -233,6 +241,8 @@ function syncAuthUI() {
       <span class="badge ${auth.role === "admin" ? "bg-danger" : "bg-success"}">${escapeHtml(auth.username)} (${auth.role})</span>
       <button class="btn btn-outline-secondary btn-sm" onclick="setAuth(null)">ออกจากระบบ</button>
     </div>`;
+
+  if (userInfo) userInfo.innerHTML = `<i class="bi bi-person-check-fill text-success me-1"></i>สั่งซื้อในชื่อ: <strong>${escapeHtml(auth.username)}</strong>`;
 
   const isAdmin = auth.role === "admin";
   adminNav.classList.toggle("d-none", !isAdmin);
