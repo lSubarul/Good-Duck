@@ -219,7 +219,7 @@ function renderProducts(list) {
   if (headingTitle) {
     headingTitle.innerHTML =
       currentCategory === "ทั้งหมด"
-        ? "เมนูไอศกรีม & เครื่องดื่ม"
+        ? "เมนูทั้งหมด"
         : getCategoryBadgeHtml(currentCategory);
   }
 
