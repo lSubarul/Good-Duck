@@ -18,6 +18,12 @@ function formatCatLabel(c) {
   return icon ? `${escapeHtml(icon)} ${escapeHtml(c.name)}` : escapeHtml(c.name);
 }
 
+function getCategoryBadgeHtml(categoryName) {
+  const matched = allCategories.find((c) => c.name === categoryName);
+  const icon = (matched?.icon || "").trim();
+  return icon ? `${escapeHtml(icon)} ${escapeHtml(categoryName)}` : escapeHtml(categoryName);
+}
+
 function getAuth() {
   try { return JSON.parse(localStorage.getItem("goodduck_auth") || "null"); }
   catch { return null; }
@@ -29,6 +35,7 @@ function setAuth(data) {
   syncAuthUI();
 }
 
+// ย่อขนาดรูปให้เบา (~40-80KB) แล้วแปลงเป็น Base64 เพื่อเก็บลง MongoDB
 function compressImageToBase64(file, maxWidth = 600, quality = 0.75) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -62,6 +69,10 @@ async function fetchCategories() {
     renderCategoryFilters();
     renderCategorySelect();
     renderAdminCategories();
+    if (allProducts.length > 0) {
+      renderProducts(allProducts);
+      renderAdminTable(allProducts);
+    }
   } catch (err) {
     console.error("โหลดหมวดหมู่ไม่สำเร็จ:", err);
   }
@@ -207,7 +218,11 @@ function renderProducts(list) {
   document.getElementById("product-count").textContent = list.length;
 
   if (list.length === 0) {
-    grid.innerHTML = `<div class="col-12 text-center py-5 text-muted">ไม่พบเมนูที่ค้นหา 🦆</div>`;
+    grid.innerHTML = `
+      <div class="col-12 text-center py-5 text-muted d-flex flex-column align-items-center gap-2">
+        <img src="IMG/Good Duck.png" alt="Good Duck" height="56">
+        <span>ไม่พบเมนูที่ค้นหา</span>
+      </div>`;
     return;
   }
 
@@ -216,7 +231,7 @@ function renderProducts(list) {
       <div class="product-card h-100 d-flex flex-column">
         <img src="${escapeHtml(p.image)}" alt="${escapeHtml(p.name)}" onclick="openDetail('${p._id}')">
         <div class="p-3 d-flex flex-column flex-grow-1">
-          <span class="badge badge-cactus align-self-start mb-2">${escapeHtml(p.category)}</span>
+          <span class="badge badge-cactus align-self-start mb-2">${getCategoryBadgeHtml(p.category)}</span>
           <h6 class="fw-bold mb-1">${escapeHtml(p.name)}</h6>
           <p class="small text-muted flex-grow-1 mb-3">${escapeHtml(p.description || "")}</p>
           <div class="d-flex justify-content-between align-items-center mb-2">
@@ -236,7 +251,7 @@ function renderProducts(list) {
 }
 
 // ==========================================
-// 3. ดูรายละเอียดสินค้าทีละชิ้น
+// 3. ดูรายละเอียดสินค้าทีละชิ้น (ดึงจาก API /:id)
 // ==========================================
 window.openDetail = async function (id) {
   const res = await fetch(`${API_BASE}/products/${id}`);
@@ -245,7 +260,7 @@ window.openDetail = async function (id) {
 
   document.getElementById("detail-name").textContent = p.name;
   document.getElementById("detail-img").src = p.image;
-  document.getElementById("detail-cat").textContent = p.category;
+  document.getElementById("detail-cat").innerHTML = getCategoryBadgeHtml(p.category);
   document.getElementById("detail-desc").textContent = p.description || "เมนูพิเศษจาก Good Duck";
   document.getElementById("detail-price").textContent = `฿${p.price}`;
   document.getElementById("detail-stock").textContent = `คงเหลือในสต็อก ${p.stock} ชิ้น`;
@@ -261,7 +276,7 @@ window.openDetail = async function (id) {
 };
 
 // ==========================================
-// 4. ตะกร้าสินค้า & สั่งซื้อ
+// 4. ตะกร้าสินค้า & สั่งซื้อ (ต้องล็อกอินก่อนสั่งซื้อ)
 // ==========================================
 window.addToCart = function (productId) {
   const product = allProducts.find((p) => p._id === productId);
@@ -537,7 +552,7 @@ function renderAdminTable(list) {
     <tr>
       <td><img src="${escapeHtml(p.image)}" width="48" height="48" class="rounded object-fit-cover"></td>
       <td class="fw-semibold">${escapeHtml(p.name)}</td>
-      <td>${escapeHtml(p.category)}</td>
+      <td>${getCategoryBadgeHtml(p.category)}</td>
       <td>฿${p.price}</td>
       <td>${p.stock}</td>
       <td class="text-end">

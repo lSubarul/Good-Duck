@@ -50,7 +50,7 @@
   <!-- Hero Section -->
   <header id="hero" class="hero-duck py-5">
     <div class="container py-3">
-      <div class="row align-items-center gy-5">
+      <div class="row align-items-center gy-4">
         <div class="col-lg-6 text-center text-lg-start">
           <span class="badge rounded-pill badge-cactus mb-3 px-3 py-2">
             🌵 Cowboy Ice Cream & Café • โฮมเมดสดใหม่ทุกวัน
@@ -70,26 +70,39 @@
             </button>
           </div>
         </div>
-        <!-- ฝั่งขวา: เวทีสปอตไลต์สไตล์คาวบอย -->
-        <div class="col-lg-6 text-center d-flex justify-content-center">
-          <div class="hero-stage-container position-relative">
-            <div class="saloon-lamp-chain"></div>
+        
+        <!-- ฝั่งรูปภาพเป็ด: คงโครงสร้างเวทีสปอตไลท์เดิมของคุณทั้งหมด -->
+        <div class="col-lg-6 text-center position-relative">
+          <div class="duck-spotlight-stage mx-auto">
             <div class="saloon-lamp">
-              <div class="lamp-cap"></div>
-              <div class="lamp-shade"></div>
-              <div class="lamp-bulb-glow"></div>
+              <div class="lamp-chain"></div>
+              <div class="lamp-body">
+                <div class="lamp-top"></div>
+                <div class="lamp-shade"></div>
+                <div class="lamp-bulb-glow"></div>
+              </div>
             </div>
-            <div class="spotlight-cone"></div>
-            <div class="stage-ambient-glow"></div>
-            <div class="light-particles"></div>
+            
+            <div class="spotlight-beam-cone"></div>
+            <div class="spotlight-back-glow"></div>
+            
+            <div class="light-sparkle sp-1"><i class="bi bi-star-fill"></i></div>
+            <div class="light-sparkle sp-2"><i class="bi bi-stars"></i></div>
+            <div class="light-sparkle sp-3"><i class="bi bi-star-fill"></i></div>
+            <div class="light-sparkle sp-4"><i class="bi bi-stars"></i></div>
+
             <div class="hero-logo-card">
-              <img src="IMG/Good Duck.png" alt="Good Duck Cowboy Mascot" class="img-fluid mascot-img">
+              <img src="IMG/Good Duck.png" alt="Good Duck Cowboy Mascot" class="img-fluid duck-mascot-img">
             </div>
-            <div class="stage-platform">
-              <div class="platform-texture"></div>
+            
+            <div class="duck-pedestal">
+              <div class="pedestal-top"></div>
+              <div class="pedestal-glow"></div>
             </div>
-            <div class="cactus-decor left"><i class="bi bi-tree"></i>🌵</div>
-            <div class="cactus-decor right">🌵<i class="bi bi-tree"></i></div>
+            
+            <span class="badge-stage-title">
+              🤠 Good Duck Mascot 🌵
+            </span>
           </div>
         </div>
       </div>
@@ -178,7 +191,10 @@
   <!-- Footer -->
   <footer class="py-4 text-center border-top bg-white">
     <div class="container">
-      <p class="mb-1 fw-semibold text-cowboy">Good Duck Cowboy Ice Cream & Café 🤠🦆</p>
+      <p class="mb-1 fw-semibold text-cowboy d-inline-flex align-items-center justify-content-center gap-2">
+        <img src="IMG/Good Duck.png" alt="Good Duck Logo" height="28">
+        <span>Good Duck Cowboy Ice Cream & Café</span>
+      </p><br>
       <small class="text-muted">Course Project 1322208 Database Systems and Big Data • MongoDB Atlas + Node.js + GitHub Pages</small>
     </div>
   </footer>
@@ -232,7 +248,7 @@
     </div>
   </div>
 
-  <!-- Modal: เข้าสู่ระบบ / สมัครสมาชิก -->
+  <!-- Modal: เข้าสู่ระบบ / สมัครสมาชิก (แยกโหมดชัดเจน + ปุ่มดูรหัสผ่าน) -->
   <div class="modal fade" id="authModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content rounded-4 border-0 overflow-hidden">
