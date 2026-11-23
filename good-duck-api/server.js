@@ -6,8 +6,8 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 const app = express();
-app.use(cors()); // อนุญาตให้ GitHub Pages เรียก API ได้
-app.use(express.json());
+app.use(cors());
+app.use(express.json({ limit: "5mb" }));
 
 const PORT = process.env.PORT || 5000;
 const JWT_SECRET = process.env.JWT_SECRET || "goodduck_cowboy_secret_2026";
@@ -104,7 +104,6 @@ app.post("/api/auth/register", async (req, res) => {
     if (exists) return res.status(409).json({ message: "ชื่อผู้ใช้นี้ถูกใช้แล้ว" });
 
     const passwordHash = await bcrypt.hash(password, 10);
-    // สมัครหน้าเว็บได้เฉพาะบทบาท customer เท่านั้น เพื่อความปลอดภัย
     const user = await User.create({ username, passwordHash, role: "customer" });
     res.status(201).json({ message: "สมัครสมาชิกสำเร็จ", username: user.username, role: user.role });
   } catch (err) {
@@ -135,13 +134,12 @@ app.post("/api/auth/login", async (req, res) => {
 // ==========================================
 // 5. Routes: Products (ลูกค้าดูได้ / Admin จัดการได้)
 // ==========================================
-// ดึงรายการสินค้าทั้งหมด + ค้นหา (q) + กรองหมวดหมู่ (category)
 app.get("/api/products", async (req, res) => {
   try {
     const { q, category } = req.query;
     const filter = {};
     if (category && category !== "ทั้งหมด") filter.category = category;
-    if (q) filter.name = { $regex: q, $options: "i" };
+    if (q) filter.name = { $regex: q,$options: "i" };
 
     const products = await Product.find(filter).sort({ createdAt: -1 });
     res.json(products);
@@ -150,7 +148,6 @@ app.get("/api/products", async (req, res) => {
   }
 });
 
-// ดูรายละเอียดสินค้าทีละชิ้น
 app.get("/api/products/:id", async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
@@ -161,7 +158,6 @@ app.get("/api/products/:id", async (req, res) => {
   }
 });
 
-// Admin: เพิ่มสินค้าใหม่
 app.post("/api/products", requireAuth, requireAdmin, async (req, res) => {
   try {
     const created = await Product.create(req.body);
@@ -171,7 +167,6 @@ app.post("/api/products", requireAuth, requireAdmin, async (req, res) => {
   }
 });
 
-// Admin: แก้ไขข้อมูล / อัปเดตราคา / สต็อก
 app.put("/api/products/:id", requireAuth, requireAdmin, async (req, res) => {
   try {
     const updated = await Product.findByIdAndUpdate(req.params.id, req.body, {
@@ -185,7 +180,6 @@ app.put("/api/products/:id", requireAuth, requireAdmin, async (req, res) => {
   }
 });
 
-// Admin: ลบสินค้า
 app.delete("/api/products/:id", requireAuth, requireAdmin, async (req, res) => {
   try {
     const deleted = await Product.findByIdAndDelete(req.params.id);
@@ -206,7 +200,6 @@ app.post("/api/orders", async (req, res) => {
       return res.status(400).json({ message: "ข้อมูลคำสั่งซื้อไม่ครบถ้วน" });
     }
 
-    // คำนวณราคารวมจากฐานข้อมูลจริง + ตัดสต็อก
     let totalPrice = 0;
     const verifiedItems = [];
 
