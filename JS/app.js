@@ -217,6 +217,14 @@ function renderProducts(list) {
   const grid = document.getElementById("product-grid");
   document.getElementById("product-count").textContent = list.length;
 
+  const headingTitle = document.getElementById("menu-heading-title");
+  if (headingTitle) {
+    headingTitle.innerHTML =
+      currentCategory === "ทั้งหมด"
+        ? "เมนูทั้งหมด"
+        : getCategoryBadgeHtml(currentCategory);
+  }
+  
   if (list.length === 0) {
     grid.innerHTML = `
       <div class="col-12 text-center py-5 text-muted d-flex flex-column align-items-center gap-2">
