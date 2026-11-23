@@ -1,5 +1,5 @@
 // เปลี่ยน URL นี้เป็นลิงก์ Backend บน Render ของคุณเมื่อ Deploy แล้ว
-const API_BASE = "http://localhost:5000/api";
+const API_BASE = "https://good-duck.onrender.com/api";
 
 let allProducts = [];
 let cart = [];
