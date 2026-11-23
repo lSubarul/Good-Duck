@@ -286,16 +286,52 @@ window.openDetail = async function (id) {
 // ==========================================
 // 4. ตะกร้าสินค้า & สั่งซื้อ (ต้องล็อกอินก่อนสั่งซื้อ)
 // ==========================================
+function showCartToast(message) {
+  let container = document.getElementById("cart-toast-container");
+  if (!container) {
+    container = document.createElement("div");
+    container.id = "cart-toast-container";
+    document.body.appendChild(container);
+  }
+
+  const toast = document.createElement("div");
+  toast.className = "cart-toast";
+  toast.innerHTML = `<i class="bi bi-basket2-fill text-warning"></i><span>${escapeHtml(message)}</span>`;
+  container.appendChild(toast);
+
+  requestAnimationFrame(() => toast.classList.add("show"));
+
+  setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => toast.remove(), 250);
+  }, 2000);
+}
+
 window.addToCart = function (productId) {
   const product = allProducts.find((p) => p._id === productId);
   if (!product) return;
+
   const existing = cart.find((c) => c.productId === productId);
   if (existing) {
-    if (existing.qty < product.stock) existing.qty++;
+    if (existing.qty >= product.stock) {
+      showCartToast(`"${product.name}" ครบจำนวนสต็อกที่มีแล้ว`);
+      return;
+    }
+    existing.qty++;
   } else {
     cart.push({ productId, name: product.name, price: product.price, qty: 1 });
   }
+
   renderCart();
+  showCartToast(`เพิ่ม "${product.name}" ลงตะกร้าแล้ว`);
+
+  // ทำเอฟเฟกต์ปุ่มตะกร้าเด้ง
+  const cartBtn = document.getElementById("cart-badge")?.closest("button");
+  if (cartBtn) {
+    cartBtn.classList.remove("cart-bounce");
+    void cartBtn.offsetWidth; // รีเซ็ต animation ให้เล่นซ้ำได้ทันที
+    cartBtn.classList.add("cart-bounce");
+  }
 };
 
 window.changeQty = function (productId, delta) {
