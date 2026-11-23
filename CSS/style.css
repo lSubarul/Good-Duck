@@ -377,3 +377,12 @@ input[type="password"]::-ms-clear {
   opacity: 1;
   transform: translateY(0);
 }
+
+/* ให้ปุ่ม btn-cowboy ตอนถูกปิดใช้งาน (disabled) ยังเห็นสีปุ่มชัดแต่จางลง */
+.btn-cowboy:disabled,
+.btn-cowboy.disabled {
+  background-color: var(--cowboy-brown) !important;
+  color: #fff !important;
+  opacity: 0.45;
+  cursor: not-allowed;
+}
