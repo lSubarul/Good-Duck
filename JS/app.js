@@ -125,7 +125,7 @@ window.openDetail = async function (id) {
 };
 
 // ==========================================
-// 3. ตะกร้าสินค้า & สั่งซื้อ (บันทึกลง MongoDB orders)
+// 3. ตะกร้าสินค้า & สั่งซื้อ (ต้องล็อกอินก่อนสั่งซื้อ)
 // ==========================================
 window.addToCart = function (productId) {
   const product = allProducts.find((p) => p._id === productId);
@@ -180,6 +180,13 @@ document.getElementById("checkout-form").addEventListener("submit", async (e) =>
   e.preventDefault();
   if (cart.length === 0) return alert("กรุณาเลือกสินค้าก่อนสั่งซื้อ");
 
+  const auth = getAuth();
+  if (!auth?.token) {
+    alert("กรุณาเข้าสู่ระบบก่อนทำการสั่งซื้อ");
+    new bootstrap.Modal(document.getElementById("authModal")).show();
+    return;
+  }
+
   const payload = {
     customerName: document.getElementById("order-name").value.trim(),
     customerPhone: document.getElementById("order-phone").value.trim(),
@@ -189,7 +196,10 @@ document.getElementById("checkout-form").addEventListener("submit", async (e) =>
 
   const res = await fetch(`${API_BASE}/orders`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${auth.token}`,
+    },
     body: JSON.stringify(payload),
   });
   const data = await res.json();
