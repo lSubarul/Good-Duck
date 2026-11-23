@@ -29,7 +29,7 @@ mongoose
 const categorySchema = new mongoose.Schema(
   {
     name: { type: String, required: true, unique: true, trim: true },
-    icon: { type: String, default: "🦆", trim: true },
+    icon: { type: String, default: "", trim: true },
   },
   { timestamps: true }
 );
@@ -80,7 +80,7 @@ const Product = mongoose.model("Product", productSchema);
 const User = mongoose.model("User", userSchema);
 const Order = mongoose.model("Order", orderSchema);
 
-// สร้างหมวดหมู่เริ่มต้นใน MongoDB อัตโนมัติถ้ายังไม่มี (ไม่กระทบสินค้าเดิม)
+// สร้างหมวดหมู่เริ่มต้นใน MongoDB อัตโนมัติถ้ายังไม่มี
 async function syncInitialCategories() {
   const count = await Category.countDocuments();
   if (count > 0) return;
@@ -159,7 +159,7 @@ app.post("/api/auth/login", async (req, res) => {
 });
 
 // ==========================================
-// 5. Routes: Categories (ลูกค้าดูได้ / Admin เพิ่ม-แก้ชื่อ-ลบได้)
+// 5. Routes: Categories
 // ==========================================
 app.get("/api/categories", async (req, res) => {
   try {
@@ -177,14 +177,16 @@ app.post("/api/categories", requireAuth, requireAdmin, async (req, res) => {
     const exists = await Category.findOne({ name: name.trim() });
     if (exists) return res.status(409).json({ message: "มีหมวดหมู่นี้อยู่แล้ว" });
 
-    const created = await Category.create({ name: name.trim(), icon: (icon || "🦆").trim() });
+    const created = await Category.create({
+      name: name.trim(),
+      icon: (icon || "").trim(),
+    });
     res.status(201).json(created);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
 });
 
-// แก้ชื่อหมวดหมู่ + อัปเดตชื่อหมวดหมู่ในสินค้าทั้งหมดที่สังกัดอยู่ให้อัตโนมัติ
 app.put("/api/categories/:id", requireAuth, requireAdmin, async (req, res) => {
   try {
     const { name, icon } = req.body;
@@ -199,7 +201,7 @@ app.put("/api/categories/:id", requireAuth, requireAdmin, async (req, res) => {
     }
 
     oldCat.name = newName;
-    if (icon !== undefined) oldCat.icon = icon.trim() || "🦆";
+    if (icon !== undefined) oldCat.icon = icon.trim();
     await oldCat.save();
 
     res.json(oldCat);
