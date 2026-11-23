@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Good Duck — Cowboy Ice Cream & Café</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="CSS/style.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg sticky-top duck-navbar">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center gap-2 fw-bold" href="#hero">
+        <img src="Img/Good Duck.png" alt="Good Duck Logo" height="44">
+        <span class="brand-title">Good Duck <small class="d-none d-sm-inline text-muted fw-normal fs-6">Café & Ice Cream</small></span>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="mainNav">
+        <ul class="navbar-nav ms-auto align-items-lg-center gap-2 mt-3 mt-lg-0">
+          <li class="nav-item"><a class="nav-link fw-medium" href="#menu">เมนูทั้งหมด</a></li>
+          <li class="nav-item d-none" id="admin-nav-item">
+            <a class="nav-link fw-semibold text-danger" href="#admin-panel">
+              <i class="bi bi-shield-lock-fill me-1"></i>จัดการร้าน (Admin)
+            </a>
+          </li>
+          <li class="nav-item">
+            <button class="btn btn-duck-outline position-relative" data-bs-toggle="offcanvas" data-bs-target="#cartOffcanvas">
+              <i class="bi bi-basket2-fill me-1"></i>ตะกร้า
+              <span id="cart-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">0</span>
+            </button>
+          </li>
+          <li class="nav-item" id="auth-btn-wrap">
+            <button class="btn btn-cowboy" data-bs-toggle="modal" data-bs-target="#authModal">
+              <i class="bi bi-person-circle me-1"></i>เข้าสู่ระบบ
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <header id="hero" class="hero-duck py-5">
+    <div class="container py-3">
+      <div class="row align-items-center gy-4">
+        <div class="col-lg-6 text-center text-lg-start">
+          <span class="badge rounded-pill badge-cactus mb-3 px-3 py-2">
+            🌵 Cowboy Ice Cream & Café • เชื่อมต่อ MongoDB แบบเรียลไทม์
+          </span>
+          <h1 class="display-5 fw-bold mb-3 hero-title">
+            ไอติมโฮมเมด & คาเฟ่<br>สไตล์คาวบอยเป็ดเหลือง <span class="text-cowboy">Good Duck</span>
+          </h1>
+          <p class="lead text-muted mb-4">
+            เสิร์ฟไอศกรีมเจลาโต้โฮมเมด กาแฟคั่วหอม และวาฟเฟิลอบใหม่กว่า 30 เมนู สั่งซื้อออนไลน์ได้ทันที ข้อมูลสินค้าและออเดอร์จัดเก็บบน MongoDB Atlas
+          </p>
+          <div class="d-flex flex-wrap gap-2 justify-content-center justify-content-lg-start">
+            <a href="#menu" class="btn btn-cowboy btn-lg px-4">
+              <i class="bi bi-cup-straw me-2"></i>เลือกดูเมนูเลย
+            </a>
+            <button class="btn btn-duck-outline btn-lg px-4" data-bs-toggle="modal" data-bs-target="#authModal">
+              เข้าสู่ระบบ Admin / ลูกค้า
+            </button>
+          </div>
+        </div>
+        <div class="col-lg-6 text-center">
+          <div class="hero-logo-card mx-auto">
+            <img src="Img/Good Duck.png" alt="Good Duck Cowboy Mascot" class="img-fluid">
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Menu Section (ดึงจาก MongoDB 100%) -->
+  <section id="menu" class="py-5">
+    <div class="container">
+      <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+        <div>
+          <span class="text-cactus fw-bold small text-uppercase">Our Menu</span>
+          <h2 class="fw-bold mb-0">เมนูไอศกรีม & เครื่องดื่ม (<span id="product-count">0</span> รายการ)</h2>
+        </div>
+        <div class="input-group search-box">
+          <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+          <input type="text" id="search-input" class="form-control border-start-0" placeholder="ค้นหาชื่อเมนู เช่น มัทฉะ, กาแฟ...">
+        </div>
+      </div>
+
+      <!-- Category Filter -->
+      <div class="d-flex flex-wrap gap-2 mb-4" id="category-filters">
+        <button class="btn btn-cat active" data-cat="ทั้งหมด">ทั้งหมด</button>
+        <button class="btn btn-cat" data-cat="ไอศกรีมโฮมเมด">🍦 ไอศกรีมโฮมเมด</button>
+        <button class="btn btn-cat" data-cat="ซันเดย์ & พาร์เฟต์">🍨 ซันเดย์ & พาร์เฟต์</button>
+        <button class="btn btn-cat" data-cat="กาแฟ & เอสเปรสโซ">☕ กาแฟ & เอสเปรสโซ</button>
+        <button class="btn btn-cat" data-cat="ชา & เครื่องดื่มเย็น">🧋 ชา & เครื่องดื่มเย็น</button>
+        <button class="btn btn-cat" data-cat="เบเกอรี่ & วาฟเฟิล">🧇 เบเกอรี่ & วาฟเฟิล</button>
+      </div>
+
+      <!-- Product Grid -->
+      <div id="product-grid" class="row g-4">
+        <div class="col-12 text-center py-5 text-muted">กำลังโหลดเมนูจาก MongoDB...</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Admin Panel (แสดงเฉพาะ role === 'admin') -->
+  <section id="admin-panel" class="py-5 bg-admin-zone d-none">
+    <div class="container">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+        <div>
+          <span class="badge bg-danger mb-1">ADMIN ONLY</span>
+          <h2 class="fw-bold mb-0">ระบบจัดการสินค้า Good Duck (CRUD → MongoDB)</h2>
+        </div>
+        <button class="btn btn-cowboy" id="btn-open-add-product">
+          <i class="bi bi-plus-circle-fill me-1"></i>เพิ่มสินค้าใหม่
+        </button>
+      </div>
+
+      <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-warning">
+              <tr>
+                <th>รูป</th>
+                <th>ชื่อเมนู</th>
+                <th>หมวดหมู่</th>
+                <th>ราคา (บาท)</th>
+                <th>สต็อก</th>
+                <th class="text-end">จัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="admin-product-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="py-4 text-center border-top bg-white">
+    <div class="container">
+      <p class="mb-1 fw-semibold text-cowboy">Good Duck Cowboy Ice Cream & Café 🤠🦆</p>
+      <small class="text-muted">Course Project 1322208 Database Systems and Big Data • MongoDB Atlas + Node.js + GitHub Pages</small>
+    </div>
+  </footer>
+
+  <!-- Modal: รายละเอียดสินค้า -->
+  <div class="modal fade" id="detailModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content rounded-4 border-0">
+        <div class="modal-header border-0">
+          <h5 class="modal-title fw-bold" id="detail-name">ชื่อสินค้า</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body pt-0">
+          <img id="detail-img" src="" alt="" class="w-100 rounded-3 mb-3" style="height:240px;object-fit:cover;">
+          <span id="detail-cat" class="badge badge-cactus mb-2"></span>
+          <p id="detail-desc" class="text-muted"></p>
+          <div class="d-flex justify-content-between align-items-center">
+            <h4 class="fw-bold text-cowboy mb-0" id="detail-price"></h4>
+            <small class="text-muted" id="detail-stock"></small>
+          </div>
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-cowboy w-100" id="detail-add-cart-btn">
+            <i class="bi bi-basket2-fill me-2"></i>เพิ่มลงตะกร้า
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Offcanvas: ตะกร้าสินค้า & สั่งซื้อ -->
+  <div class="offcanvas offcanvas-end" tabindex="-1" id="cartOffcanvas">
+    <div class="offcanvas-header border-bottom">
+      <h5 class="offcanvas-title fw-bold">🧺 ตะกร้าสินค้า Good Duck</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body d-flex flex-column">
+      <div id="cart-items" class="flex-grow-1"></div>
+      <div class="border-top pt-3 mt-3">
+        <div class="d-flex justify-content-between fw-bold fs-5 mb-3">
+          <span>ยอดรวม</span>
+          <span class="text-cowboy" id="cart-total">฿0</span>
+        </div>
+        <form id="checkout-form" class="d-grid gap-2">
+          <input type="text" id="order-name" class="form-control" placeholder="ชื่อผู้รับ (ใช้ข้อมูลสมมติ)" required>
+          <input type="text" id="order-phone" class="form-control" placeholder="เบอร์โทรสมมติ เช่น 080-000-0000" required>
+          <input type="text" id="order-note" class="form-control" placeholder="หมายเหตุ เช่น หวานน้อย, แยกน้ำแข็ง">
+          <button type="submit" class="btn btn-cowboy btn-lg fw-semibold mt-1">ยืนยันการสั่งซื้อ</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: เข้าสู่ระบบ / สมัครสมาชิก -->
+  <div class="modal fade" id="authModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content rounded-4 border-0">
+        <div class="modal-header border-0">
+          <h5 class="modal-title fw-bold">เข้าสู่ระบบ Good Duck</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body pt-0">
+          <form id="login-form" class="d-grid gap-3">
+            <div>
+              <label class="form-label small">ชื่อผู้ใช้ (Username)</label>
+              <input type="text" id="login-username" class="form-control" placeholder="admin หรือ duckfan" required>
+            </div>
+            <div>
+              <label class="form-label small">รหัสผ่าน (Password)</label>
+              <input type="password" id="login-password" class="form-control" placeholder="กรอกรหัสผ่าน" required>
+            </div>
+            <button type="submit" class="btn btn-cowboy fw-semibold">เข้าสู่ระบบ</button>
+            <button type="button" id="btn-register-mode" class="btn btn-link btn-sm text-decoration-none">
+              ยังไม่มีบัญชี? สมัครสมาชิก (Customer)
+            </button>
+          </form>
+          <div class="alert alert-warning small mt-3 mb-0">
+            <strong>บัญชีทดสอบ:</strong><br>
+            Admin: <code>admin</code> / <code>admin1234</code><br>
+            Customer: <code>duckfan</code> / <code>duck1234</code>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Admin เพิ่ม/แก้ไขสินค้า -->
+  <div class="modal fade" id="productFormModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content rounded-4 border-0">
+        <div class="modal-header border-0">
+          <h5 class="modal-title fw-bold" id="product-form-title">เพิ่มสินค้าใหม่</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body pt-0">
+          <form id="product-crud-form" class="d-grid gap-3">
+            <input type="hidden" id="pf-id">
+            <div>
+              <label class="form-label small">ชื่อเมนู</label>
+              <input type="text" id="pf-name" class="form-control" required>
+            </div>
+            <div>
+              <label class="form-label small">หมวดหมู่</label>
+              <select id="pf-category" class="form-select" required>
+                <option value="ไอศกรีมโฮมเมด">ไอศกรีมโฮมเมด</option>
+                <option value="ซันเดย์ & พาร์เฟต์">ซันเดย์ & พาร์เฟต์</option>
+                <option value="กาแฟ & เอสเปรสโซ">กาแฟ & เอสเปรสโซ</option>
+                <option value="ชา & เครื่องดื่มเย็น">ชา & เครื่องดื่มเย็น</option>
+                <option value="เบเกอรี่ & วาฟเฟิล">เบเกอรี่ & วาฟเฟิล</option>
+              </select>
+            </div>
+            <div class="row g-2">
+              <div class="col-6">
+                <label class="form-label small">ราคา (บาท)</label>
+                <input type="number" id="pf-price" class="form-control" min="0" required>
+              </div>
+              <div class="col-6">
+                <label class="form-label small">สต็อก (ชิ้น)</label>
+                <input type="number" id="pf-stock" class="form-control" min="0" required>
+              </div>
+            </div>
+            <div>
+              <label class="form-label small">URL รูปภาพ</label>
+              <input type="url" id="pf-image" class="form-control" placeholder="https://..." required>
+            </div>
+            <div>
+              <label class="form-label small">รายละเอียดเมนู</label>
+              <textarea id="pf-desc" class="form-control" rows="2"></textarea>
+            </div>
+            <button type="submit" class="btn btn-cowboy fw-semibold">บันทึกข้อมูลลง MongoDB</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="JS/app.js"></script>
+</body>
+</html>
