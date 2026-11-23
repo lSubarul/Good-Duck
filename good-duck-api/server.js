@@ -49,7 +49,7 @@ const orderSchema = new mongoose.Schema(
     customerName: { type: String, required: true },
     customerPhone: { type: String, required: true },
     note: { type: String, default: "" },
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     items: [
       {
         productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
@@ -139,7 +139,7 @@ app.get("/api/products", async (req, res) => {
     const { q, category } = req.query;
     const filter = {};
     if (category && category !== "ทั้งหมด") filter.category = category;
-    if (q) filter.name = { $regex: q,$options: "i" };
+    if (q) filter.name = { $regex: q, $options: "i" };
 
     const products = await Product.find(filter).sort({ createdAt: -1 });
     res.json(products);
@@ -191,9 +191,9 @@ app.delete("/api/products/:id", requireAuth, requireAdmin, async (req, res) => {
 });
 
 // ==========================================
-// 6. Routes: Orders (ลูกค้าสั่งซื้อ / Admin ดูออเดอร์)
+// 6. Routes: Orders (ต้องล็อกอินก่อนสั่งซื้อ / Admin ดูออเดอร์)
 // ==========================================
-app.post("/api/orders", async (req, res) => {
+app.post("/api/orders", requireAuth, async (req, res) => {
   try {
     const { customerName, customerPhone, note, items } = req.body;
     if (!customerName || !customerPhone || !Array.isArray(items) || items.length === 0) {
@@ -205,9 +205,7 @@ app.post("/api/orders", async (req, res) => {
 
     for (const item of items) {
       const product = await Product.findById(item.productId);
-      if (!product) return res.status(404).json({ message: `ไม่พบสินค้า ${item.productId}` });
-      if (product.stock < item.qty) {
-        return res.status(400).json({ message: `สินค้า "${product.name}" คงเหลือไม่พอ` });
+      if (!product) return res.status(404).json({ message: `ไม่พบสินค้า ${item.productId}` }); if (product.stock < item.qty) { return res.status(400).json({ message: `สินค้า "${product.name}" คงเหลือไม่พอ` });
       }
       product.stock -= item.qty;
       await product.save();
@@ -225,6 +223,7 @@ app.post("/api/orders", async (req, res) => {
       customerName,
       customerPhone,
       note,
+      userId: req.user.userId,
       items: verifiedItems,
       totalPrice,
     });
