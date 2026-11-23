@@ -220,7 +220,7 @@ document.getElementById("btn-go-login")?.addEventListener("click", () => {
 });
 
 // ==========================================
-// 4. ระบบ Login / Register (แยกหน้าตาชัดเจน) & แยกสิทธิ์ Admin
+// 4. ระบบ Login / Register & แยกสิทธิ์ Admin
 // ==========================================
 function setAuthMode(register) {
   isRegisterMode = register;

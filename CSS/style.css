@@ -31,21 +31,230 @@ body {
 
 .hero-duck {
   background:
-    radial-gradient(circle at 85% 20%, rgba(255, 211, 92, 0.4), transparent 45%),
+    radial-gradient(circle at 85% 20%, rgba(255, 211, 92, 0.45), transparent 45%),
     radial-gradient(circle at 10% 90%, rgba(56, 189, 248, 0.18), transparent 40%),
     linear-gradient(180deg, #FFF7DF 0%, var(--bg-cream) 100%);
   border-bottom: 2px dashed rgba(92, 58, 33, 0.18);
+  position: relative;
+  overflow: hidden;
 }
 
+/* ==========================================
+   ระบบสปอตไลท์ & เวทีเป็ด (Duck Spotlight Stage)
+   ========================================== */
+.duck-spotlight-stage {
+  position: relative;
+  width: 100%;
+  max-width: 450px;
+  height: 420px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  padding-bottom: 45px;
+}
+
+/* โคมไฟ / ตะเกียงวินเทจ */
+.saloon-lamp {
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: lampSway 4s ease-in-out infinite alternate;
+  transform-origin: top center;
+}
+
+.lamp-chain {
+  width: 4px;
+  height: 45px;
+  background: linear-gradient(to bottom, #2b1a0e, #5c3a21);
+  border-radius: 2px;
+}
+
+.lamp-body {
+  position: relative;
+  width: 44px;
+  height: 34px;
+}
+
+.lamp-top {
+  width: 18px;
+  height: 8px;
+  background: #3e2614;
+  margin: 0 auto;
+  border-radius: 4px 4px 0 0;
+}
+
+.lamp-shade {
+  width: 44px;
+  height: 20px;
+  background: linear-gradient(135deg, #5c3a21, #805330, #3e2614);
+  border-radius: 50% 50% 12px 12px / 20px 20px 4px 4px;
+  border-bottom: 2.5px solid #d4af37;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+}
+
+.lamp-bulb-glow {
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 14px;
+  height: 14px;
+  background: #fff6bd;
+  border-radius: 50%;
+  box-shadow: 
+    0 0 16px #ffd35c,
+    0 0 32px #ffd35c,
+    0 0 50px rgba(255, 211, 92, 0.9);
+}
+
+/* ลำแสงสปอตไลท์ทรงกรวย */
+.spotlight-beam-cone {
+  position: absolute;
+  top: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 320px;
+  height: 330px;
+  background: linear-gradient(180deg, 
+    rgba(255, 235, 160, 0.45) 0%, 
+    rgba(255, 211, 92, 0.28) 40%, 
+    rgba(255, 211, 92, 0.12) 75%, 
+    rgba(255, 211, 92, 0) 100%);
+  clip-path: polygon(42% 0%, 58% 0%, 100% 100%, 0% 100%);
+  pointer-events: none;
+  z-index: 2;
+  animation: beamPulse 3s ease-in-out infinite alternate;
+}
+
+/* แสงเรืองรองด้านหลังน้องเป็ด */
+.spotlight-back-glow {
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 280px;
+  height: 280px;
+  background: radial-gradient(circle, rgba(255, 211, 92, 0.6) 0%, rgba(255, 211, 92, 0.25) 50%, transparent 75%);
+  filter: blur(15px);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ประกายดาวระยิบระยับ */
+.light-sparkle {
+  position: absolute;
+  color: #ffd35c;
+  font-size: 1.2rem;
+  z-index: 5;
+  filter: drop-shadow(0 0 4px #fff);
+  animation: sparkleFloat 3s ease-in-out infinite;
+  pointer-events: none;
+}
+.sp-1 { top: 30%; left: 15%; animation-delay: 0s; font-size: 1.1rem; }
+.sp-2 { top: 22%; right: 18%; animation-delay: 0.8s; font-size: 1.4rem; }
+.sp-3 { top: 55%; left: 10%; animation-delay: 1.4s; font-size: 1.2rem; }
+.sp-4 { top: 48%; right: 12%; animation-delay: 0.4s; font-size: 1.3rem; }
+
+/* ตัวการ์ดน้องเป็ด */
 .hero-logo-card {
-  max-width: 440px;
-  padding: 1.5rem;
-  background: #fff;
-  border-radius: 32px;
-  border: 3px solid var(--duck-yellow);
-  box-shadow: 0 18px 40px rgba(92, 58, 33, 0.12);
+  position: relative;
+  z-index: 4;
+  margin-bottom: -15px;
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
+.duck-mascot-img {
+  max-height: 220px;
+  object-fit: contain;
+  filter: drop-shadow(0 14px 28px rgba(92, 58, 33, 0.35));
+  animation: duckFloat 4s ease-in-out infinite alternate;
+}
+
+/* แท่นเวทีคาวบอย */
+.duck-pedestal {
+  position: relative;
+  width: 220px;
+  height: 28px;
+  margin: 0 auto;
+  z-index: 3;
+}
+
+.pedestal-top {
+  width: 100%;
+  height: 18px;
+  background: linear-gradient(to right, #4a2e1a, #6e4627, #4a2e1a);
+  border: 2px solid #ffd35c;
+  border-radius: 50% / 8px;
+  box-shadow: 
+    0 4px 10px rgba(0, 0, 0, 0.25),
+    inset 0 1px 4px rgba(255, 255, 255, 0.3);
+}
+
+.pedestal-glow {
+  position: absolute;
+  top: 8px;
+  left: 5%;
+  width: 90%;
+  height: 14px;
+  background: radial-gradient(ellipse, rgba(255, 211, 92, 0.8) 0%, transparent 70%);
+  filter: blur(2px);
+  pointer-events: none;
+}
+
+/* ป้ายชื่อเวที */
+.badge-stage-title {
+  display: inline-block;
+  margin-top: 14px;
+  padding: 0.35rem 0.9rem;
+  background: #5c3a21;
+  color: #fff;
+  border: 1.5px solid #ffd35c;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  box-shadow: 
+    0 4px 12px rgba(92, 58, 33, 0.25),
+    0 0 10px rgba(255, 211, 92, 0.4);
+  z-index: 5;
+  animation: pulseBadge 2s ease-in-out infinite alternate;
+}
+
+/* แอนิเมชัน */
+@keyframes lampSway {
+  0% { transform: translateX(-50%) rotate(-2deg); }
+  100% { transform: translateX(-50%) rotate(2deg); }
+}
+
+@keyframes beamPulse {
+  0% { opacity: 0.75; transform: translateX(-50%) scaleX(0.96); }
+  100% { opacity: 0.95; transform: translateX(-50%) scaleX(1.04); }
+}
+
+@keyframes duckFloat {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-8px); }
+}
+
+@keyframes sparkleFloat {
+  0%, 100% { transform: translateY(0) scale(0.8); opacity: 0.5; }
+  50% { transform: translateY(-10px) scale(1.2); opacity: 1; }
+}
+
+@keyframes pulseBadge {
+  0% { transform: scale(1); box-shadow: 0 4px 12px rgba(92, 58, 33, 0.25), 0 0 8px rgba(255, 211, 92, 0.4); }
+  100% { transform: scale(1.03); box-shadow: 0 4px 15px rgba(92, 58, 33, 0.35), 0 0 14px rgba(255, 211, 92, 0.6); }
+}
+
+/* ==========================================
+   องค์ประกอบทั่วไป
+   ========================================== */
 .badge-cactus {
   background: rgba(77, 124, 44, 0.14);
   color: var(--cactus-green);

@@ -70,9 +70,47 @@
             </button>
           </div>
         </div>
-        <div class="col-lg-6 text-center">
-          <div class="hero-logo-card mx-auto">
-            <img src="IMG/Good Duck.png" alt="Good Duck Cowboy Mascot" class="img-fluid">
+        
+        <!-- ฝั่งรูปภาพเป็ด: มีโคมไฟสปอตไลท์ ลำแสง และแท่นเวทีเรืองแสง -->
+        <div class="col-lg-6 text-center position-relative">
+          <div class="duck-spotlight-stage mx-auto">
+            <!-- โคมไฟสปอตไลท์วินเทจห้อยลงมา -->
+            <div class="saloon-lamp">
+              <div class="lamp-chain"></div>
+              <div class="lamp-body">
+                <div class="lamp-top"></div>
+                <div class="lamp-shade"></div>
+                <div class="lamp-bulb-glow"></div>
+              </div>
+            </div>
+            
+            <!-- ลำแสงสปอตไลท์สีทอง -->
+            <div class="spotlight-beam-cone"></div>
+            
+            <!-- ออร่าเรืองแสงวงกลมด้านหลังน้องเป็ด -->
+            <div class="spotlight-back-glow"></div>
+            
+            <!-- ประกายดาวระยิบระยับ -->
+            <div class="light-sparkle sp-1"><i class="bi bi-star-fill"></i></div>
+            <div class="light-sparkle sp-2"><i class="bi bi-stars"></i></div>
+            <div class="light-sparkle sp-3"><i class="bi bi-star-fill"></i></div>
+            <div class="light-sparkle sp-4"><i class="bi bi-stars"></i></div>
+
+            <!-- ตัวน้องเป็ดคาวบอย -->
+            <div class="hero-logo-card">
+              <img src="IMG/Good Duck.png" alt="Good Duck Cowboy Mascot" class="img-fluid duck-mascot-img">
+            </div>
+            
+            <!-- แท่นเวทีคาวบอย -->
+            <div class="duck-pedestal">
+              <div class="pedestal-top"></div>
+              <div class="pedestal-glow"></div>
+            </div>
+            
+            <!-- ป้ายชื่อเวที -->
+            <span class="badge-stage-title">
+              🤠 Good Duck Mascot 🌵
+            </span>
           </div>
         </div>
       </div>
@@ -200,7 +238,7 @@
     </div>
   </div>
 
-  <!-- Modal: เข้าสู่ระบบ / สมัครสมาชิก (แยกโหมดชัดเจน) -->
+  <!-- Modal: เข้าสู่ระบบ / สมัครสมาชิก -->
   <div class="modal fade" id="authModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content rounded-4 border-0 overflow-hidden">
@@ -211,7 +249,6 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body pt-0">
-          <!-- แถบสลับโหมด เข้าสู่ระบบ / สมัครสมาชิก -->
           <div class="d-flex gap-2 p-1 rounded-3 mb-3" style="background:#f5efe0;">
             <button type="button" id="tab-login" class="btn btn-cowboy btn-sm flex-fill fw-semibold">เข้าสู่ระบบ</button>
             <button type="button" id="tab-register" class="btn btn-sm flex-fill fw-semibold text-muted">สมัครสมาชิกใหม่</button>
@@ -226,7 +263,6 @@
               <label class="form-label small fw-semibold">รหัสผ่าน (Password)</label>
               <input type="password" id="login-password" class="form-control" placeholder="กรอกรหัสผ่าน" required>
             </div>
-            <!-- ช่องยืนยันรหัสผ่าน แสดงเฉพาะตอนสมัครสมาชิก -->
             <div id="confirm-password-wrap" class="d-none">
               <label class="form-label small fw-semibold">ยืนยันรหัสผ่าน (Confirm Password)</label>
               <input type="password" id="login-confirm-password" class="form-control" placeholder="กรอกรหัสผ่านอีกครั้ง">
@@ -236,11 +272,9 @@
             </button>
           </form>
 
-          <!-- กล่องบัญชีทดสอบ แสดงเฉพาะโหมดเข้าสู่ระบบ -->
           <div id="demo-account-box" class="alert alert-warning small mt-3 mb-0">
             <strong>บัญชีทดสอบ (ลูกค้า):</strong> <code>duckfan</code> / <code>duck1234</code>
           </div>
-          <!-- กล่องคำแนะนำ แสดงเฉพาะโหมดสมัครสมาชิก -->
           <div id="register-info-box" class="alert alert-success small mt-3 mb-0 d-none">
             <i class="bi bi-stars me-1"></i>สมัครสมาชิกฟรี เพื่อใช้สั่งซื้อเมนูโปรดจากร้าน Good Duck
           </div>
@@ -301,7 +335,7 @@
     </div>
   </div>
 
-  <!-- Modal: แจ้งเตือนให้เข้าสู่ระบบก่อนสั่งซื้อ (ไอคอนกากบาท + ปุ่ม X ปิด) -->
+  <!-- Modal: แจ้งเตือนให้เข้าสู่ระบบก่อนสั่งซื้อ -->
   <div class="modal fade" id="loginRequiredModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-sm">
       <div class="modal-content rounded-4 border-0 text-center p-4 shadow position-relative">
