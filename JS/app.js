@@ -346,11 +346,17 @@ function renderCart() {
   const wrap = document.getElementById("cart-items");
   const badge = document.getElementById("cart-badge");
   const totalEl = document.getElementById("cart-total");
+  const checkoutBtn = document.getElementById("checkout-submit-btn");
 
   const count = cart.reduce((sum, i) => sum + i.qty, 0);
   const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
   badge.textContent = count;
   totalEl.textContent = `฿${total}`;
+
+  // ล็อกปุ่มสั่งซื้อเมื่อไม่มีสินค้าในตะกร้า
+  if (checkoutBtn) {
+    checkoutBtn.disabled = cart.length === 0;
+  }
 
   if (cart.length === 0) {
     wrap.innerHTML = `<p class="text-center text-muted mt-4">ยังไม่มีสินค้าในตะกร้า</p>`;
@@ -371,6 +377,22 @@ function renderCart() {
   `).join("");
 }
 
+// กรองช่องเบอร์โทรให้พิมพ์ได้เฉพาะตัวเลข 0-9 สูงสุด 10 ตัว
+const phoneInput = document.getElementById("order-phone");
+if (phoneInput) {
+  // บล็อกไม่ให้กดพิมพ์ปุ่มอื่นที่ไม่ใช่ตัวเลข 0-9 (ยกเว้นปุ่มลบ/ลูกศร/Ctrl+V)
+  phoneInput.addEventListener("keydown", (e) => {
+    const allowed = ["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"];
+    if (allowed.includes(e.key) || e.ctrlKey || e.metaKey) return;
+    if (!/^[0-9]$/.test(e.key)) e.preventDefault();
+  });
+
+  // กันกรณีพิมพ์ภาษาไทยหรือก๊อปวางตัวอักษร ให้ลบออกและตัดไม่เกิน 10 ตัวทันที
+  phoneInput.addEventListener("input", (e) => {
+    e.target.value = e.target.value.replace(/\D/g, "").slice(0, 10);
+  });
+}
+
 document.getElementById("checkout-form")?.addEventListener("submit", async (e) => {
   e.preventDefault();
   if (cart.length === 0) return alert("กรุณาเลือกสินค้าก่อนสั่งซื้อ");
@@ -382,6 +404,40 @@ document.getElementById("checkout-form")?.addEventListener("submit", async (e) =
     new bootstrap.Modal(document.getElementById("loginRequiredModal")).show();
     return;
   }
+
+  const phone = document.getElementById("order-phone").value.trim();
+  if (!/^\d{10}$/.test(phone)) {
+    return alert("กรุณากรอกเบอร์โทรศัพท์เป็นตัวเลขให้ครบ 10 หลัก");
+  }
+
+  const payload = {
+    customerName: auth.username,
+    customerPhone: phone,
+    note: document.getElementById("order-note").value.trim(),
+    items: cart.map((c) => ({ productId: c.productId, qty: c.qty })),
+  };
+
+  try {
+    const res = await fetch(`${API_BASE}/orders`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${auth.token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) return alert(data.message || "สั่งซื้อไม่สำเร็จ");
+
+    alert(`สั่งซื้อสำเร็จ! รหัสออเดอร์: ${data._id} (ยอดรวม ฿${data.totalPrice})`);
+    cart = [];
+    renderCart();
+    e.target.reset();
+    fetchProducts();
+  } catch {
+    alert("ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้ง");
+  }
+});
 
   const payload = {
     customerName: auth.username,
@@ -410,7 +466,6 @@ document.getElementById("checkout-form")?.addEventListener("submit", async (e) =
   } catch {
     alert("ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้ง");
   }
-});
 
 document.getElementById("btn-go-login")?.addEventListener("click", () => {
   bootstrap.Modal.getInstance(document.getElementById("loginRequiredModal"))?.hide();
