@@ -1,6 +1,7 @@
 const API_BASE = "https://good-duck.onrender.com/api";
 
 let allProducts = [];
+let allCategories = [];
 let cart = [];
 let currentCategory = "ทั้งหมด";
 let currentSearch = "";
@@ -23,7 +24,6 @@ function setAuth(data) {
   syncAuthUI();
 }
 
-// ย่อขนาดรูปให้เบา (~40-80KB) แล้วแปลงเป็น Base64 เพื่อเก็บลง MongoDB
 function compressImageToBase64(file, maxWidth = 600, quality = 0.75) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -47,7 +47,137 @@ function compressImageToBase64(file, maxWidth = 600, quality = 0.75) {
 }
 
 // ==========================================
-// 1. ดึงข้อมูลสินค้าจาก MongoDB ผ่าน API
+// 1. ดึงและจัดการหมวดหมู่ (MongoDB categories)
+// ==========================================
+async function fetchCategories() {
+  try {
+    const res = await fetch(`${API_BASE}/categories`);
+    if (!res.ok) return;
+    allCategories = await res.json();
+    renderCategoryFilters();
+    renderCategorySelect();
+    renderAdminCategories();
+  } catch (err) {
+    console.error("โหลดหมวดหมู่ไม่สำเร็จ:", err);
+  }
+}
+
+function renderCategoryFilters() {
+  const wrap = document.getElementById("category-filters");
+  if (!wrap) return;
+
+  const buttons = [
+    `<button class="btn btn-cat ${currentCategory === "ทั้งหมด" ? "active" : ""}" data-cat="ทั้งหมด">ทั้งหมด</button>`,
+    ...allCategories.map(
+      (c) => `<button class="btn btn-cat ${currentCategory === c.name ? "active" : ""}" data-cat="${escapeHtml(c.name)}">${escapeHtml(c.icon || "🦆")} ${escapeHtml(c.name)}</button>`
+    ),
+  ];
+  wrap.innerHTML = buttons.join("");
+
+  wrap.querySelectorAll(".btn-cat").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      currentCategory = btn.dataset.cat;
+      renderCategoryFilters();
+      fetchProducts();
+    });
+  });
+}
+
+function renderCategorySelect() {
+  const select = document.getElementById("pf-category");
+  if (!select) return;
+  select.innerHTML = allCategories
+    .map((c) => `<option value="${escapeHtml(c.name)}">${escapeHtml(c.icon || "🦆")} ${escapeHtml(c.name)}</option>`)
+    .join("");
+}
+
+function renderAdminCategories() {
+  const wrap = document.getElementById("admin-category-list");
+  if (!wrap) return;
+
+  if (allCategories.length === 0) {
+    wrap.innerHTML = `<span class="text-muted small">ยังไม่มีหมวดหมู่</span>`;
+    return;
+  }
+
+  wrap.innerHTML = allCategories
+    .map(
+      (c) => `
+      <div class="d-inline-flex align-items-center gap-2 px-3 py-2 rounded-pill border bg-light">
+        <span class="fw-semibold">${escapeHtml(c.icon || "🦆")} ${escapeHtml(c.name)}</span>
+        <button type="button" class="btn btn-sm btn-outline-warning py-0 px-2" title="เปลี่ยนชื่อหมวดหมู่" onclick="editCategory('${c._id}', '${escapeHtml(c.name)}', '${escapeHtml(c.icon || "🦆")}')">
+          <i class="bi bi-pencil-fill"></i>
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2" title="ลบหมวดหมู่" onclick="deleteCategory('${c._id}', '${escapeHtml(c.name)}')">
+          <i class="bi bi-trash-fill"></i>
+        </button>
+      </div>`
+    )
+    .join("");
+}
+
+document.getElementById("category-add-form")?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const auth = getAuth();
+  if (!auth?.token) return alert("กรุณาเข้าสู่ระบบ Admin ก่อน");
+
+  const name = document.getElementById("new-cat-name").value.trim();
+  const icon = document.getElementById("new-cat-icon").value.trim() || "🦆";
+  if (!name) return;
+
+  const res = await fetch(`${API_BASE}/categories`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${auth.token}`,
+    },
+    body: JSON.stringify({ name, icon }),
+  });
+  const data = await res.json();
+  if (!res.ok) return alert(data.message || "เพิ่มหมวดหมู่ไม่สำเร็จ");
+
+  document.getElementById("new-cat-name").value = "";
+  await fetchCategories();
+});
+
+window.editCategory = async function (id, oldName, oldIcon) {
+  const newName = prompt("ตั้งชื่อหมวดหมู่ใหม่:", oldName);
+  if (!newName || !newName.trim() || newName.trim() === oldName) return;
+
+  const auth = getAuth();
+  const res = await fetch(`${API_BASE}/categories/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${auth?.token}`,
+    },
+    body: JSON.stringify({ name: newName.trim(), icon: oldIcon }),
+  });
+  const data = await res.json();
+  if (!res.ok) return alert(data.message || "แก้ไขหมวดหมู่ไม่สำเร็จ");
+
+  if (currentCategory === oldName) currentCategory = newName.trim();
+  await fetchCategories();
+  await fetchProducts();
+};
+
+window.deleteCategory = async function (id, name) {
+  if (!confirm(`ยืนยันการลบหมวดหมู่ "${name}"?`)) return;
+  const auth = getAuth();
+  const res = await fetch(`${API_BASE}/categories/${id}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${auth?.token}` },
+  });
+  const data = await res.json();
+  if (!res.ok) return alert(data.message || "ลบหมวดหมู่ไม่สำเร็จ");
+
+  if (currentCategory === name) currentCategory = "ทั้งหมด";
+  await fetchCategories();
+  await fetchProducts();
+};
+
+// ==========================================
+// 2. ดึงข้อมูลสินค้าจาก MongoDB ผ่าน API
 // ==========================================
 async function fetchProducts() {
   const params = new URLSearchParams();
@@ -100,7 +230,7 @@ function renderProducts(list) {
 }
 
 // ==========================================
-// 2. ดูรายละเอียดสินค้าทีละชิ้น (ดึงจาก API /:id)
+// 3. ดูรายละเอียดสินค้าทีละชิ้น
 // ==========================================
 window.openDetail = async function (id) {
   const res = await fetch(`${API_BASE}/products/${id}`);
@@ -125,7 +255,7 @@ window.openDetail = async function (id) {
 };
 
 // ==========================================
-// 3. ตะกร้าสินค้า & สั่งซื้อ (ต้องล็อกอินก่อนสั่งซื้อ)
+// 4. ตะกร้าสินค้า & สั่งซื้อ
 // ==========================================
 window.addToCart = function (productId) {
   const product = allProducts.find((p) => p._id === productId);
@@ -224,9 +354,8 @@ document.getElementById("btn-go-login")?.addEventListener("click", () => {
 });
 
 // ==========================================
-// 4. ระบบ Login / Register + ปุ่มเปิดดูรหัสผ่าน
+// 5. ระบบ Login / Register + ปุ่มเปิดดูรหัสผ่าน
 // ==========================================
-// ปุ่มรูปตา แสดง/ซ่อนรหัสผ่าน
 document.querySelectorAll(".toggle-pw-btn").forEach((btn) => {
   btn.addEventListener("click", () => {
     const input = document.getElementById(btn.dataset.target);
@@ -359,7 +488,7 @@ document.getElementById("login-form")?.addEventListener("submit", async (e) => {
       bootstrap.Modal.getInstance(document.getElementById("authModal"))?.hide();
       e.target.reset();
     }
-  } catch (err) {
+  } catch {
     showAuthError("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ (รอ Render ตื่นสักครู่แล้วกดลองใหม่)");
   } finally {
     submitBtn.disabled = false;
@@ -368,7 +497,7 @@ document.getElementById("login-form")?.addEventListener("submit", async (e) => {
 });
 
 // ==========================================
-// 5. ระบบ Admin จัดการสินค้า + อัปโหลดรูปภาพ
+// 6. ระบบ Admin จัดการสินค้า + อัปโหลดรูปภาพ
 // ==========================================
 document.getElementById("pf-image-file")?.addEventListener("change", async (e) => {
   const file = e.target.files[0];
@@ -487,17 +616,8 @@ window.deleteProduct = async function (id) {
 };
 
 // ==========================================
-// 6. ตัวกรองหมวดหมู่ & ค้นหา
+// 7. ค้นหาสินค้า
 // ==========================================
-document.querySelectorAll("#category-filters .btn-cat").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    document.querySelectorAll("#category-filters .btn-cat").forEach((b) => b.classList.remove("active"));
-    btn.classList.add("active");
-    currentCategory = btn.dataset.cat;
-    fetchProducts();
-  });
-});
-
 let searchTimer;
 document.getElementById("search-input")?.addEventListener("input", (e) => {
   clearTimeout(searchTimer);
@@ -510,4 +630,5 @@ document.getElementById("search-input")?.addEventListener("input", (e) => {
 // เริ่มต้นทำงาน
 syncAuthUI();
 renderCart();
+fetchCategories();
 fetchProducts();

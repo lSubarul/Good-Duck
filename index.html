@@ -50,7 +50,7 @@
   <!-- Hero Section -->
   <header id="hero" class="hero-duck py-5">
     <div class="container py-3">
-      <div class="row align-items-center gy-4">
+      <div class="row align-items-center gy-5">
         <div class="col-lg-6 text-center text-lg-start">
           <span class="badge rounded-pill badge-cactus mb-3 px-3 py-2">
             🌵 Cowboy Ice Cream & Café • โฮมเมดสดใหม่ทุกวัน
@@ -70,47 +70,26 @@
             </button>
           </div>
         </div>
-        
-        <!-- ฝั่งรูปภาพเป็ด: มีโคมไฟสปอตไลท์ ลำแสง และแท่นเวทีเรืองแสง -->
-        <div class="col-lg-6 text-center position-relative">
-          <div class="duck-spotlight-stage mx-auto">
-            <!-- โคมไฟสปอตไลท์วินเทจห้อยลงมา -->
+        <!-- ฝั่งขวา: เวทีสปอตไลต์สไตล์คาวบอย -->
+        <div class="col-lg-6 text-center d-flex justify-content-center">
+          <div class="hero-stage-container position-relative">
+            <div class="saloon-lamp-chain"></div>
             <div class="saloon-lamp">
-              <div class="lamp-chain"></div>
-              <div class="lamp-body">
-                <div class="lamp-top"></div>
-                <div class="lamp-shade"></div>
-                <div class="lamp-bulb-glow"></div>
-              </div>
+              <div class="lamp-cap"></div>
+              <div class="lamp-shade"></div>
+              <div class="lamp-bulb-glow"></div>
             </div>
-            
-            <!-- ลำแสงสปอตไลท์สีทอง -->
-            <div class="spotlight-beam-cone"></div>
-            
-            <!-- ออร่าเรืองแสงวงกลมด้านหลังน้องเป็ด -->
-            <div class="spotlight-back-glow"></div>
-            
-            <!-- ประกายดาวระยิบระยับ -->
-            <div class="light-sparkle sp-1"><i class="bi bi-star-fill"></i></div>
-            <div class="light-sparkle sp-2"><i class="bi bi-stars"></i></div>
-            <div class="light-sparkle sp-3"><i class="bi bi-star-fill"></i></div>
-            <div class="light-sparkle sp-4"><i class="bi bi-stars"></i></div>
-
-            <!-- ตัวน้องเป็ดคาวบอย -->
+            <div class="spotlight-cone"></div>
+            <div class="stage-ambient-glow"></div>
+            <div class="light-particles"></div>
             <div class="hero-logo-card">
-              <img src="IMG/Good Duck.png" alt="Good Duck Cowboy Mascot" class="img-fluid duck-mascot-img">
+              <img src="IMG/Good Duck.png" alt="Good Duck Cowboy Mascot" class="img-fluid mascot-img">
             </div>
-            
-            <!-- แท่นเวทีคาวบอย -->
-            <div class="duck-pedestal">
-              <div class="pedestal-top"></div>
-              <div class="pedestal-glow"></div>
+            <div class="stage-platform">
+              <div class="platform-texture"></div>
             </div>
-            
-            <!-- ป้ายชื่อเวที -->
-            <span class="badge-stage-title">
-              🤠 Good Duck Mascot 🌵
-            </span>
+            <div class="cactus-decor left"><i class="bi bi-tree"></i>🌵</div>
+            <div class="cactus-decor right">🌵<i class="bi bi-tree"></i></div>
           </div>
         </div>
       </div>
@@ -131,14 +110,9 @@
         </div>
       </div>
 
-      <!-- Category Filter -->
+      <!-- Category Filter (โหลดจาก MongoDB categories อัตโนมัติ) -->
       <div class="d-flex flex-wrap gap-2 mb-4" id="category-filters">
         <button class="btn btn-cat active" data-cat="ทั้งหมด">ทั้งหมด</button>
-        <button class="btn btn-cat" data-cat="ไอศกรีมโฮมเมด">🍦 ไอศกรีมโฮมเมด</button>
-        <button class="btn btn-cat" data-cat="ซันเดย์ & พาร์เฟต์">🍨 ซันเดย์ & พาร์เฟต์</button>
-        <button class="btn btn-cat" data-cat="กาแฟ & เอสเปรสโซ">☕ กาแฟ & เอสเปรสโซ</button>
-        <button class="btn btn-cat" data-cat="ชา & เครื่องดื่มเย็น">🧋 ชา & เครื่องดื่มเย็น</button>
-        <button class="btn btn-cat" data-cat="เบเกอรี่ & วาฟเฟิล">🧇 เบเกอรี่ & วาฟเฟิล</button>
       </div>
 
       <!-- Product Grid -->
@@ -151,7 +125,27 @@
   <!-- Admin Panel (แสดงเฉพาะ role === 'admin') -->
   <section id="admin-panel" class="py-5 bg-admin-zone d-none">
     <div class="container">
-      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+
+      <!-- ส่วนที่ 1: จัดการหมวดหมู่สินค้า (เพิ่ม / แก้ชื่อ / ลบ) -->
+      <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div>
+            <span class="badge bg-warning text-dark mb-1">CATEGORY MANAGER</span>
+            <h4 class="fw-bold mb-0">จัดการหมวดหมู่สินค้า</h4>
+          </div>
+          <form id="category-add-form" class="d-flex flex-wrap gap-2">
+            <input type="text" id="new-cat-icon" class="form-control" style="width: 72px;" placeholder="ไอคอน" value="🦆" maxlength="4">
+            <input type="text" id="new-cat-name" class="form-control" style="width: 220px;" placeholder="ชื่อหมวดหมู่ใหม่..." required>
+            <button type="submit" class="btn btn-cowboy fw-semibold">
+              <i class="bi bi-plus-lg me-1"></i>เพิ่มหมวดหมู่
+            </button>
+          </form>
+        </div>
+        <div id="admin-category-list" class="d-flex flex-wrap gap-2"></div>
+      </div>
+
+      <!-- ส่วนที่ 2: จัดการรายการสินค้า -->
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
         <div>
           <span class="badge bg-danger mb-1">ADMIN ONLY</span>
           <h2 class="fw-bold mb-0">ระบบจัดการสินค้า Good Duck (CRUD → MongoDB)</h2>
@@ -238,7 +232,7 @@
     </div>
   </div>
 
-  <!-- Modal: เข้าสู่ระบบ / สมัครสมาชิก (แยกโหมดชัดเจน + ปุ่มดูรหัสผ่าน) -->
+  <!-- Modal: เข้าสู่ระบบ / สมัครสมาชิก -->
   <div class="modal fade" id="authModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content rounded-4 border-0 overflow-hidden">
@@ -249,13 +243,11 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body pt-0">
-          <!-- แถบสลับโหมด เข้าสู่ระบบ / สมัครสมาชิก -->
           <div class="d-flex gap-2 p-1 rounded-3 mb-3" style="background:#f5efe0;">
             <button type="button" id="tab-login" class="btn btn-cowboy btn-sm flex-fill fw-semibold">เข้าสู่ระบบ</button>
             <button type="button" id="tab-register" class="btn btn-sm flex-fill fw-semibold text-muted">สมัครสมาชิกใหม่</button>
           </div>
 
-          <!-- กล่องแจ้งเตือน Error -->
           <div id="auth-error-box" class="alert alert-danger small py-2 d-none"></div>
 
           <form id="login-form" class="d-grid gap-3">
@@ -272,7 +264,6 @@
                 </button>
               </div>
             </div>
-            <!-- ช่องยืนยันรหัสผ่าน แสดงเฉพาะตอนสมัครสมาชิก -->
             <div id="confirm-password-wrap" class="d-none">
               <label class="form-label small fw-semibold">ยืนยันรหัสผ่าน (Confirm Password)</label>
               <div class="input-group">
@@ -287,11 +278,9 @@
             </button>
           </form>
 
-          <!-- กล่องบัญชีทดสอบ แสดงเฉพาะโหมดเข้าสู่ระบบ -->
           <div id="demo-account-box" class="alert alert-warning small mt-3 mb-0">
             <strong>บัญชีทดสอบ (ลูกค้า):</strong> <code>duckfan</code> / <code>duck1234</code>
           </div>
-          <!-- กล่องคำแนะนำ แสดงเฉพาะโหมดสมัครสมาชิก -->
           <div id="register-info-box" class="alert alert-success small mt-3 mb-0 d-none">
             <i class="bi bi-stars me-1"></i>สมัครสมาชิกฟรี เพื่อใช้สั่งซื้อเมนูโปรดจากร้าน Good Duck
           </div>
@@ -317,13 +306,7 @@
             </div>
             <div>
               <label class="form-label small">หมวดหมู่</label>
-              <select id="pf-category" class="form-select" required>
-                <option value="ไอศกรีมโฮมเมด">ไอศกรีมโฮมเมด</option>
-                <option value="ซันเดย์ & พาร์เฟต์">ซันเดย์ & พาร์เฟต์</option>
-                <option value="กาแฟ & เอสเปรสโซ">กาแฟ & เอสเปรสโซ</option>
-                <option value="ชา & เครื่องดื่มเย็น">ชา & เครื่องดื่มเย็น</option>
-                <option value="เบเกอรี่ & วาฟเฟิล">เบเกอรี่ & วาฟเฟิล</option>
-              </select>
+              <select id="pf-category" class="form-select" required></select>
             </div>
             <div class="row g-2">
               <div class="col-6">
