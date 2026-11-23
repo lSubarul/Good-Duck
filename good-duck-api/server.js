@@ -17,12 +17,23 @@ const JWT_SECRET = process.env.JWT_SECRET || "goodduck_cowboy_secret_2026";
 // ==========================================
 mongoose
   .connect(process.env.MONGODB_URI)
-  .then(() => console.log("Connected to MongoDB Atlas (Good Duck DB)"))
+  .then(async () => {
+    console.log("Connected to MongoDB Atlas (Good Duck DB)");
+    await syncInitialCategories();
+  })
   .catch((err) => console.error("MongoDB connection error:", err));
 
 // ==========================================
-// 2. กำหนด Schema และ Model (3 Collections)
+// 2. กำหนด Schema และ Model (4 Collections)
 // ==========================================
+const categorySchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true, unique: true, trim: true },
+    icon: { type: String, default: "🦆", trim: true },
+  },
+  { timestamps: true }
+);
+
 const productSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
@@ -64,9 +75,25 @@ const orderSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+const Category = mongoose.model("Category", categorySchema);
 const Product = mongoose.model("Product", productSchema);
 const User = mongoose.model("User", userSchema);
 const Order = mongoose.model("Order", orderSchema);
+
+// สร้างหมวดหมู่เริ่มต้นใน MongoDB อัตโนมัติถ้ายังไม่มี (ไม่กระทบสินค้าเดิม)
+async function syncInitialCategories() {
+  const count = await Category.countDocuments();
+  if (count > 0) return;
+  const defaults = [
+    { name: "ไอศกรีมโฮมเมด", icon: "🍦" },
+    { name: "ซันเดย์ & พาร์เฟต์", icon: "🍨" },
+    { name: "กาแฟ & เอสเปรสโซ", icon: "☕" },
+    { name: "ชา & เครื่องดื่มเย็น", icon: "🧋" },
+    { name: "เบเกอรี่ & วาฟเฟิล", icon: "🧇" },
+  ];
+  await Category.insertMany(defaults);
+  console.log("Initialized default categories in MongoDB");
+}
 
 // ==========================================
 // 3. Middleware ตรวจสอบสิทธิ์ (Auth & Admin)
@@ -92,7 +119,7 @@ function requireAdmin(req, res, next) {
 }
 
 // ==========================================
-// 4. Routes: Authentication (สมัคร / ล็อกอิน)
+// 4. Routes: Authentication
 // ==========================================
 app.post("/api/auth/register", async (req, res) => {
   try {
@@ -132,7 +159,76 @@ app.post("/api/auth/login", async (req, res) => {
 });
 
 // ==========================================
-// 5. Routes: Products (ลูกค้าดูได้ / Admin จัดการได้)
+// 5. Routes: Categories (ลูกค้าดูได้ / Admin เพิ่ม-แก้ชื่อ-ลบได้)
+// ==========================================
+app.get("/api/categories", async (req, res) => {
+  try {
+    const categories = await Category.find().sort({ createdAt: 1 });
+    res.json(categories);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+app.post("/api/categories", requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { name, icon } = req.body;
+    if (!name || !name.trim()) return res.status(400).json({ message: "กรุณากรอกชื่อหมวดหมู่" });
+    const exists = await Category.findOne({ name: name.trim() });
+    if (exists) return res.status(409).json({ message: "มีหมวดหมู่นี้อยู่แล้ว" });
+
+    const created = await Category.create({ name: name.trim(), icon: (icon || "🦆").trim() });
+    res.status(201).json(created);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// แก้ชื่อหมวดหมู่ + อัปเดตชื่อหมวดหมู่ในสินค้าทั้งหมดที่สังกัดอยู่ให้อัตโนมัติ
+app.put("/api/categories/:id", requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { name, icon } = req.body;
+    if (!name || !name.trim()) return res.status(400).json({ message: "กรุณากรอกชื่อหมวดหมู่" });
+
+    const oldCat = await Category.findById(req.params.id);
+    if (!oldCat) return res.status(404).json({ message: "ไม่พบหมวดหมู่นี้" });
+
+    const newName = name.trim();
+    if (oldCat.name !== newName) {
+      await Product.updateMany({ category: oldCat.name }, { $set: { category: newName } });
+    }
+
+    oldCat.name = newName;
+    if (icon !== undefined) oldCat.icon = icon.trim() || "🦆";
+    await oldCat.save();
+
+    res.json(oldCat);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+app.delete("/api/categories/:id", requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const cat = await Category.findById(req.params.id);
+    if (!cat) return res.status(404).json({ message: "ไม่พบหมวดหมู่นี้" });
+
+    const usedCount = await Product.countDocuments({ category: cat.name });
+    if (usedCount > 0) {
+      return res.status(400).json({
+        message: `ลบไม่ได้ เนื่องจากมีสินค้าอยู่ในหมวดหมู่นี้ ${usedCount} รายการ (กรุณาย้ายหรือลบสินค้าก่อน)`,
+      });
+    }
+
+    await Category.findByIdAndDelete(req.params.id);
+    res.json({ message: "ลบหมวดหมู่เรียบร้อยแล้ว" });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// ==========================================
+// 6. Routes: Products
 // ==========================================
 app.get("/api/products", async (req, res) => {
   try {
@@ -191,7 +287,7 @@ app.delete("/api/products/:id", requireAuth, requireAdmin, async (req, res) => {
 });
 
 // ==========================================
-// 6. Routes: Orders (ต้องล็อกอินก่อนสั่งซื้อ / Admin ดูออเดอร์)
+// 7. Routes: Orders
 // ==========================================
 app.post("/api/orders", requireAuth, async (req, res) => {
   try {
@@ -205,7 +301,9 @@ app.post("/api/orders", requireAuth, async (req, res) => {
 
     for (const item of items) {
       const product = await Product.findById(item.productId);
-      if (!product) return res.status(404).json({ message: `ไม่พบสินค้า ${item.productId}` }); if (product.stock < item.qty) { return res.status(400).json({ message: `สินค้า "${product.name}" คงเหลือไม่พอ` });
+      if (!product) return res.status(404).json({ message: `ไม่พบสินค้า ${item.productId}` });
+      if (product.stock < item.qty) {
+        return res.status(400).json({ message: `สินค้า "${product.name}" คงเหลือไม่พอ` });
       }
       product.stock -= item.qty;
       await product.save();
