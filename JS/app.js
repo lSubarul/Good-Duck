@@ -1,4 +1,3 @@
-// เปลี่ยน URL นี้เป็นลิงก์ Backend บน Render ของคุณเมื่อ Deploy แล้ว
 const API_BASE = "https://good-duck.onrender.com/api";
 
 let allProducts = [];
@@ -22,6 +21,29 @@ function setAuth(data) {
   if (data) localStorage.setItem("goodduck_auth", JSON.stringify(data));
   else localStorage.removeItem("goodduck_auth");
   syncAuthUI();
+}
+
+// ย่อขนาดรูปให้เบา (~40-80KB) แล้วแปลงเป็น Base64 เพื่อเก็บลง MongoDB
+function compressImageToBase64(file, maxWidth = 600, quality = 0.75) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, maxWidth / img.width);
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 }
 
 // ==========================================
@@ -177,7 +199,7 @@ document.getElementById("checkout-form").addEventListener("submit", async (e) =>
   cart = [];
   renderCart();
   e.target.reset();
-  fetchProducts(); // รีเฟรชสต็อกล่าสุดจาก MongoDB
+  fetchProducts();
 });
 
 // ==========================================
@@ -239,8 +261,33 @@ document.getElementById("login-form").addEventListener("submit", async (e) => {
 });
 
 // ==========================================
-// 5. ระบบ Admin จัดการสินค้า (Add / Edit / Delete)
+// 5. ระบบ Admin จัดการสินค้า + อัปโหลดรูปภาพ
 // ==========================================
+document.getElementById("pf-image-file").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  try {
+    const base64 = await compressImageToBase64(file);
+    document.getElementById("pf-image").value = base64;
+    const preview = document.getElementById("pf-preview");
+    preview.src = base64;
+    preview.classList.remove("d-none");
+  } catch {
+    alert("ไม่สามารถอ่านไฟล์รูปภาพได้");
+  }
+});
+
+document.getElementById("pf-image").addEventListener("input", (e) => {
+  const val = e.target.value.trim();
+  const preview = document.getElementById("pf-preview");
+  if (val) {
+    preview.src = val;
+    preview.classList.remove("d-none");
+  } else {
+    preview.classList.add("d-none");
+  }
+});
+
 function renderAdminTable(list) {
   const tbody = document.getElementById("admin-product-tbody");
   if (!tbody) return;
@@ -262,6 +309,7 @@ function renderAdminTable(list) {
 document.getElementById("btn-open-add-product").addEventListener("click", () => {
   document.getElementById("product-crud-form").reset();
   document.getElementById("pf-id").value = "";
+  document.getElementById("pf-preview").classList.add("d-none");
   document.getElementById("product-form-title").textContent = "เพิ่มสินค้าใหม่";
   new bootstrap.Modal(document.getElementById("productFormModal")).show();
 });
@@ -276,6 +324,16 @@ window.openEditProduct = function (id) {
   document.getElementById("pf-stock").value = p.stock;
   document.getElementById("pf-image").value = p.image;
   document.getElementById("pf-desc").value = p.description || "";
+  document.getElementById("pf-image-file").value = "";
+
+  const preview = document.getElementById("pf-preview");
+  if (p.image) {
+    preview.src = p.image;
+    preview.classList.remove("d-none");
+  } else {
+    preview.classList.add("d-none");
+  }
+
   document.getElementById("product-form-title").textContent = "แก้ไขข้อมูลสินค้า";
   new bootstrap.Modal(document.getElementById("productFormModal")).show();
 };

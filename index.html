@@ -269,8 +269,10 @@
               </div>
             </div>
             <div>
-              <label class="form-label small">URL รูปภาพ</label>
-              <input type="url" id="pf-image" class="form-control" placeholder="https://..." required>
+              <label class="form-label small">รูปภาพสินค้า (อัปโหลดจากเครื่อง หรือวาง URL)</label>
+              <input type="file" id="pf-image-file" class="form-control mb-2" accept="image/*">
+              <input type="text" id="pf-image" class="form-control" placeholder="หรือวางลิงก์รูปภาพ https://..." required>
+              <img id="pf-preview" src="" alt="ตัวอย่างรูป" class="w-100 rounded-3 mt-2 d-none" style="height:150px;object-fit:cover;">
             </div>
             <div>
               <label class="form-label small">รายละเอียดเมนู</label>
