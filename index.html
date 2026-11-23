@@ -200,31 +200,49 @@
     </div>
   </div>
 
-  <!-- Modal: เข้าสู่ระบบ / สมัครสมาชิก -->
+  <!-- Modal: เข้าสู่ระบบ / สมัครสมาชิก (แยกโหมดชัดเจน) -->
   <div class="modal fade" id="authModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content rounded-4 border-0">
-        <div class="modal-header border-0">
-          <h5 class="modal-title fw-bold">เข้าสู่ระบบ Good Duck</h5>
+      <div class="modal-content rounded-4 border-0 overflow-hidden">
+        <div class="modal-header border-0 pb-2">
+          <h5 class="modal-title fw-bold" id="auth-modal-title">
+            <i class="bi bi-box-arrow-in-right text-cowboy me-2"></i>เข้าสู่ระบบ Good Duck
+          </h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body pt-0">
+          <!-- แถบสลับโหมด เข้าสู่ระบบ / สมัครสมาชิก -->
+          <div class="d-flex gap-2 p-1 rounded-3 mb-3" style="background:#f5efe0;">
+            <button type="button" id="tab-login" class="btn btn-cowboy btn-sm flex-fill fw-semibold">เข้าสู่ระบบ</button>
+            <button type="button" id="tab-register" class="btn btn-sm flex-fill fw-semibold text-muted">สมัครสมาชิกใหม่</button>
+          </div>
+
           <form id="login-form" class="d-grid gap-3">
             <div>
-              <label class="form-label small">ชื่อผู้ใช้ (Username)</label>
+              <label class="form-label small fw-semibold">ชื่อผู้ใช้ (Username)</label>
               <input type="text" id="login-username" class="form-control" placeholder="กรอกชื่อผู้ใช้" required>
             </div>
             <div>
-              <label class="form-label small">รหัสผ่าน (Password)</label>
+              <label class="form-label small fw-semibold">รหัสผ่าน (Password)</label>
               <input type="password" id="login-password" class="form-control" placeholder="กรอกรหัสผ่าน" required>
             </div>
-            <button type="submit" class="btn btn-cowboy fw-semibold">เข้าสู่ระบบ</button>
-            <button type="button" id="btn-register-mode" class="btn btn-link btn-sm text-decoration-none">
-              ยังไม่มีบัญชี? สมัครสมาชิก (Customer)
+            <!-- ช่องยืนยันรหัสผ่าน แสดงเฉพาะตอนสมัครสมาชิก -->
+            <div id="confirm-password-wrap" class="d-none">
+              <label class="form-label small fw-semibold">ยืนยันรหัสผ่าน (Confirm Password)</label>
+              <input type="password" id="login-confirm-password" class="form-control" placeholder="กรอกรหัสผ่านอีกครั้ง">
+            </div>
+            <button type="submit" id="auth-submit-btn" class="btn btn-cowboy fw-semibold py-2">
+              <i class="bi bi-box-arrow-in-right me-1"></i>เข้าสู่ระบบ
             </button>
           </form>
-          <div class="alert alert-warning small mt-3 mb-0">
+
+          <!-- กล่องบัญชีทดสอบ แสดงเฉพาะโหมดเข้าสู่ระบบ -->
+          <div id="demo-account-box" class="alert alert-warning small mt-3 mb-0">
             <strong>บัญชีทดสอบ (ลูกค้า):</strong> <code>duckfan</code> / <code>duck1234</code>
+          </div>
+          <!-- กล่องคำแนะนำ แสดงเฉพาะโหมดสมัครสมาชิก -->
+          <div id="register-info-box" class="alert alert-success small mt-3 mb-0 d-none">
+            <i class="bi bi-stars me-1"></i>สมัครสมาชิกฟรี เพื่อใช้สั่งซื้อเมนูโปรดจากร้าน Good Duck
           </div>
         </div>
       </div>
@@ -283,21 +301,21 @@
     </div>
   </div>
 
-  <!-- Modal: แจ้งเตือนให้เข้าสู่ระบบก่อนสั่งซื้อ -->
+  <!-- Modal: แจ้งเตือนให้เข้าสู่ระบบก่อนสั่งซื้อ (ไอคอนกากบาท + ปุ่ม X ปิด) -->
   <div class="modal fade" id="loginRequiredModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-sm">
-      <div class="modal-content rounded-4 border-0 text-center p-4 shadow">
-        <div class="mb-2" style="font-size: 3rem;">🤠🦆</div>
+      <div class="modal-content rounded-4 border-0 text-center p-4 shadow position-relative">
+        <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="ปิด"></button>
+        <div class="mb-2 mt-1">
+          <i class="bi bi-x-circle-fill text-danger" style="font-size: 3.4rem;"></i>
+        </div>
         <h5 class="fw-bold text-cowboy mb-2">กรุณาเข้าสู่ระบบก่อน</h5>
         <p class="text-muted small mb-4">
           เข้าสู่ระบบบัญชีลูกค้าเพื่อยืนยันการสั่งซื้อและบันทึกออเดอร์ของคุณ
         </p>
-        <div class="d-grid gap-2">
-          <button type="button" class="btn btn-cowboy fw-semibold" id="btn-go-login">
-            <i class="bi bi-person-circle me-1"></i>ไปหน้าเข้าสู่ระบบ
-          </button>
-          <button type="button" class="btn btn-light btn-sm text-muted" data-bs-dismiss="modal">ไว้ทีหลัง</button>
-        </div>
+        <button type="button" class="btn btn-cowboy fw-semibold w-100" id="btn-go-login">
+          <i class="bi bi-person-circle me-1"></i>ไปหน้าเข้าสู่ระบบ
+        </button>
       </div>
     </div>
   </div>
