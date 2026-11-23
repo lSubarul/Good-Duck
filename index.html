@@ -238,7 +238,7 @@
     </div>
   </div>
 
-  <!-- Modal: เข้าสู่ระบบ / สมัครสมาชิก -->
+  <!-- Modal: เข้าสู่ระบบ / สมัครสมาชิก (แยกโหมดชัดเจน + ปุ่มดูรหัสผ่าน) -->
   <div class="modal fade" id="authModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content rounded-4 border-0 overflow-hidden">
@@ -249,10 +249,14 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body pt-0">
+          <!-- แถบสลับโหมด เข้าสู่ระบบ / สมัครสมาชิก -->
           <div class="d-flex gap-2 p-1 rounded-3 mb-3" style="background:#f5efe0;">
             <button type="button" id="tab-login" class="btn btn-cowboy btn-sm flex-fill fw-semibold">เข้าสู่ระบบ</button>
             <button type="button" id="tab-register" class="btn btn-sm flex-fill fw-semibold text-muted">สมัครสมาชิกใหม่</button>
           </div>
+
+          <!-- กล่องแจ้งเตือน Error -->
+          <div id="auth-error-box" class="alert alert-danger small py-2 d-none"></div>
 
           <form id="login-form" class="d-grid gap-3">
             <div>
@@ -261,20 +265,33 @@
             </div>
             <div>
               <label class="form-label small fw-semibold">รหัสผ่าน (Password)</label>
-              <input type="password" id="login-password" class="form-control" placeholder="กรอกรหัสผ่าน" required>
+              <div class="input-group">
+                <input type="password" id="login-password" class="form-control" placeholder="กรอกรหัสผ่าน" required>
+                <button type="button" class="btn btn-outline-secondary toggle-pw-btn" data-target="login-password" aria-label="แสดง/ซ่อนรหัสผ่าน">
+                  <i class="bi bi-eye"></i>
+                </button>
+              </div>
             </div>
+            <!-- ช่องยืนยันรหัสผ่าน แสดงเฉพาะตอนสมัครสมาชิก -->
             <div id="confirm-password-wrap" class="d-none">
               <label class="form-label small fw-semibold">ยืนยันรหัสผ่าน (Confirm Password)</label>
-              <input type="password" id="login-confirm-password" class="form-control" placeholder="กรอกรหัสผ่านอีกครั้ง">
+              <div class="input-group">
+                <input type="password" id="login-confirm-password" class="form-control" placeholder="กรอกรหัสผ่านอีกครั้ง">
+                <button type="button" class="btn btn-outline-secondary toggle-pw-btn" data-target="login-confirm-password" aria-label="แสดง/ซ่อนรหัสผ่าน">
+                  <i class="bi bi-eye"></i>
+                </button>
+              </div>
             </div>
             <button type="submit" id="auth-submit-btn" class="btn btn-cowboy fw-semibold py-2">
               <i class="bi bi-box-arrow-in-right me-1"></i>เข้าสู่ระบบ
             </button>
           </form>
 
+          <!-- กล่องบัญชีทดสอบ แสดงเฉพาะโหมดเข้าสู่ระบบ -->
           <div id="demo-account-box" class="alert alert-warning small mt-3 mb-0">
             <strong>บัญชีทดสอบ (ลูกค้า):</strong> <code>duckfan</code> / <code>duck1234</code>
           </div>
+          <!-- กล่องคำแนะนำ แสดงเฉพาะโหมดสมัครสมาชิก -->
           <div id="register-info-box" class="alert alert-success small mt-3 mb-0 d-none">
             <i class="bi bi-stars me-1"></i>สมัครสมาชิกฟรี เพื่อใช้สั่งซื้อเมนูโปรดจากร้าน Good Duck
           </div>

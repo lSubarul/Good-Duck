@@ -176,7 +176,7 @@ function renderCart() {
   `).join("");
 }
 
-document.getElementById("checkout-form").addEventListener("submit", async (e) => {
+document.getElementById("checkout-form")?.addEventListener("submit", async (e) => {
   e.preventDefault();
   if (cart.length === 0) return alert("กรุณาเลือกสินค้าก่อนสั่งซื้อ");
 
@@ -195,22 +195,26 @@ document.getElementById("checkout-form").addEventListener("submit", async (e) =>
     items: cart.map((c) => ({ productId: c.productId, qty: c.qty })),
   };
 
-  const res = await fetch(`${API_BASE}/orders`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${auth.token}`,
-    },
-    body: JSON.stringify(payload),
-  });
-  const data = await res.json();
-  if (!res.ok) return alert(data.message || "สั่งซื้อไม่สำเร็จ");
+  try {
+    const res = await fetch(`${API_BASE}/orders`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${auth.token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) return alert(data.message || "สั่งซื้อไม่สำเร็จ");
 
-  alert(`สั่งซื้อสำเร็จ! รหัสออเดอร์: ${data._id} (ยอดรวม ฿${data.totalPrice})`);
-  cart = [];
-  renderCart();
-  e.target.reset();
-  fetchProducts();
+    alert(`สั่งซื้อสำเร็จ! รหัสออเดอร์: ${data._id} (ยอดรวม ฿${data.totalPrice})`);
+    cart = [];
+    renderCart();
+    e.target.reset();
+    fetchProducts();
+  } catch {
+    alert("ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้ง");
+  }
 });
 
 document.getElementById("btn-go-login")?.addEventListener("click", () => {
@@ -220,10 +224,35 @@ document.getElementById("btn-go-login")?.addEventListener("click", () => {
 });
 
 // ==========================================
-// 4. ระบบ Login / Register & แยกสิทธิ์ Admin
+// 4. ระบบ Login / Register + ปุ่มเปิดดูรหัสผ่าน
 // ==========================================
+// ปุ่มรูปตา แสดง/ซ่อนรหัสผ่าน
+document.querySelectorAll(".toggle-pw-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const input = document.getElementById(btn.dataset.target);
+    const icon = btn.querySelector("i");
+    if (!input) return;
+    const isHidden = input.type === "password";
+    input.type = isHidden ? "text" : "password";
+    icon.className = isHidden ? "bi bi-eye-slash" : "bi bi-eye";
+  });
+});
+
+function showAuthError(msg) {
+  const box = document.getElementById("auth-error-box");
+  if (!box) return alert(msg);
+  if (!msg) {
+    box.classList.add("d-none");
+    box.textContent = "";
+  } else {
+    box.textContent = msg;
+    box.classList.remove("d-none");
+  }
+}
+
 function setAuthMode(register) {
   isRegisterMode = register;
+  showAuthError("");
   const title = document.getElementById("auth-modal-title");
   const tabLogin = document.getElementById("tab-login");
   const tabRegister = document.getElementById("tab-register");
@@ -288,42 +317,60 @@ function syncAuthUI() {
   adminPanel.classList.toggle("d-none", !isAdmin);
 }
 
-document.getElementById("login-form").addEventListener("submit", async (e) => {
+document.getElementById("login-form")?.addEventListener("submit", async (e) => {
   e.preventDefault();
+  showAuthError("");
+
   const username = document.getElementById("login-username").value.trim();
   const password = document.getElementById("login-password").value;
+  const submitBtn = document.getElementById("auth-submit-btn");
 
   if (isRegisterMode) {
     const confirmPassword = document.getElementById("login-confirm-password").value;
     if (password !== confirmPassword) {
-      return alert("รหัสผ่านและยืนยันรหัสผ่านไม่ตรงกัน");
+      return showAuthError("รหัสผ่านและยืนยันรหัสผ่านไม่ตรงกัน");
     }
   }
 
-  const endpoint = isRegisterMode ? "/auth/register" : "/auth/login";
-  const res = await fetch(`${API_BASE}${endpoint}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, password }),
-  });
-  const data = await res.json();
-  if (!res.ok) return alert(data.message || "ดำเนินการไม่สำเร็จ");
+  const oldHtml = submitBtn.innerHTML;
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>กำลังเชื่อมต่อ...`;
 
-  if (isRegisterMode) {
-    alert("สมัครสมาชิกสำเร็จ! กรุณาเข้าสู่ระบบด้วยบัญชีที่คุณเพิ่งสร้าง");
-    e.target.reset();
-    setAuthMode(false);
-  } else {
-    setAuth(data);
-    bootstrap.Modal.getInstance(document.getElementById("authModal")).hide();
-    e.target.reset();
+  try {
+    const endpoint = isRegisterMode ? "/auth/register" : "/auth/login";
+    const res = await fetch(`${API_BASE}${endpoint}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      showAuthError(data.message || "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
+      return;
+    }
+
+    if (isRegisterMode) {
+      alert("สมัครสมาชิกสำเร็จ! กรุณาเข้าสู่ระบบด้วยบัญชีที่คุณเพิ่งสร้าง");
+      e.target.reset();
+      setAuthMode(false);
+    } else {
+      setAuth(data);
+      bootstrap.Modal.getInstance(document.getElementById("authModal"))?.hide();
+      e.target.reset();
+    }
+  } catch (err) {
+    showAuthError("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ (รอ Render ตื่นสักครู่แล้วกดลองใหม่)");
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = oldHtml;
   }
 });
 
 // ==========================================
 // 5. ระบบ Admin จัดการสินค้า + อัปโหลดรูปภาพ
 // ==========================================
-document.getElementById("pf-image-file").addEventListener("change", async (e) => {
+document.getElementById("pf-image-file")?.addEventListener("change", async (e) => {
   const file = e.target.files[0];
   if (!file) return;
   try {
@@ -337,7 +384,7 @@ document.getElementById("pf-image-file").addEventListener("change", async (e) =>
   }
 });
 
-document.getElementById("pf-image").addEventListener("input", (e) => {
+document.getElementById("pf-image")?.addEventListener("input", (e) => {
   const val = e.target.value.trim();
   const preview = document.getElementById("pf-preview");
   if (val) {
@@ -366,7 +413,7 @@ function renderAdminTable(list) {
   `).join("");
 }
 
-document.getElementById("btn-open-add-product").addEventListener("click", () => {
+document.getElementById("btn-open-add-product")?.addEventListener("click", () => {
   document.getElementById("product-crud-form").reset();
   document.getElementById("pf-id").value = "";
   document.getElementById("pf-preview").classList.add("d-none");
@@ -398,7 +445,7 @@ window.openEditProduct = function (id) {
   new bootstrap.Modal(document.getElementById("productFormModal")).show();
 };
 
-document.getElementById("product-crud-form").addEventListener("submit", async (e) => {
+document.getElementById("product-crud-form")?.addEventListener("submit", async (e) => {
   e.preventDefault();
   const auth = getAuth();
   if (!auth?.token) return alert("กรุณาเข้าสู่ระบบ Admin ก่อน");
@@ -452,7 +499,7 @@ document.querySelectorAll("#category-filters .btn-cat").forEach((btn) => {
 });
 
 let searchTimer;
-document.getElementById("search-input").addEventListener("input", (e) => {
+document.getElementById("search-input")?.addEventListener("input", (e) => {
   clearTimeout(searchTimer);
   searchTimer = setTimeout(() => {
     currentSearch = e.target.value;

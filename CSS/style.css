@@ -326,3 +326,9 @@ body {
   background: #fff4e6;
   border-top: 2px dashed var(--cowboy-brown);
 }
+
+/* ซ่อนปุ่มรูปตาอัตโนมัติของ Microsoft Edge เพื่อไม่ให้ซ้อนกัน */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
