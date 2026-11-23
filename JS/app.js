@@ -221,10 +221,10 @@ function renderProducts(list) {
   if (headingTitle) {
     headingTitle.innerHTML =
       currentCategory === "ทั้งหมด"
-        ? "เมนูทั้งหมด"
+        ? "เมนูไอศกรีม & เครื่องดื่ม"
         : getCategoryBadgeHtml(currentCategory);
   }
-  
+
   if (list.length === 0) {
     grid.innerHTML = `
       <div class="col-12 text-center py-5 text-muted d-flex flex-column align-items-center gap-2">
@@ -259,7 +259,7 @@ function renderProducts(list) {
 }
 
 // ==========================================
-// 3. ดูรายละเอียดสินค้าทีละชิ้น (ดึงจาก API /:id)
+// 3. ดูรายละเอียดสินค้าทีละชิ้น
 // ==========================================
 window.openDetail = async function (id) {
   const res = await fetch(`${API_BASE}/products/${id}`);
@@ -284,7 +284,7 @@ window.openDetail = async function (id) {
 };
 
 // ==========================================
-// 4. ตะกร้าสินค้า & สั่งซื้อ (ต้องล็อกอินก่อนสั่งซื้อ)
+// 4. ตะกร้าสินค้า + เอฟเฟกต์เด้ง/Toast + สั่งซื้อ
 // ==========================================
 function showCartToast(message) {
   let container = document.getElementById("cart-toast-container");
@@ -325,11 +325,10 @@ window.addToCart = function (productId) {
   renderCart();
   showCartToast(`เพิ่ม "${product.name}" ลงตะกร้าแล้ว`);
 
-  // ทำเอฟเฟกต์ปุ่มตะกร้าเด้ง
   const cartBtn = document.getElementById("cart-badge")?.closest("button");
   if (cartBtn) {
     cartBtn.classList.remove("cart-bounce");
-    void cartBtn.offsetWidth; // รีเซ็ต animation ให้เล่นซ้ำได้ทันที
+    void cartBtn.offsetWidth;
     cartBtn.classList.add("cart-bounce");
   }
 };
@@ -353,7 +352,6 @@ function renderCart() {
   badge.textContent = count;
   totalEl.textContent = `฿${total}`;
 
-  // ล็อกปุ่มสั่งซื้อเมื่อไม่มีสินค้าในตะกร้า
   if (checkoutBtn) {
     checkoutBtn.disabled = cart.length === 0;
   }
@@ -377,17 +375,13 @@ function renderCart() {
   `).join("");
 }
 
-// กรองช่องเบอร์โทรให้พิมพ์ได้เฉพาะตัวเลข 0-9 สูงสุด 10 ตัว
 const phoneInput = document.getElementById("order-phone");
 if (phoneInput) {
-  // บล็อกไม่ให้กดพิมพ์ปุ่มอื่นที่ไม่ใช่ตัวเลข 0-9 (ยกเว้นปุ่มลบ/ลูกศร/Ctrl+V)
   phoneInput.addEventListener("keydown", (e) => {
     const allowed = ["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"];
     if (allowed.includes(e.key) || e.ctrlKey || e.metaKey) return;
     if (!/^[0-9]$/.test(e.key)) e.preventDefault();
   });
-
-  // กันกรณีพิมพ์ภาษาไทยหรือก๊อปวางตัวอักษร ให้ลบออกและตัดไม่เกิน 10 ตัวทันที
   phoneInput.addEventListener("input", (e) => {
     e.target.value = e.target.value.replace(/\D/g, "").slice(0, 10);
   });
@@ -438,34 +432,6 @@ document.getElementById("checkout-form")?.addEventListener("submit", async (e) =
     alert("ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้ง");
   }
 });
-
-  const payload = {
-    customerName: auth.username,
-    customerPhone: document.getElementById("order-phone").value.trim(),
-    note: document.getElementById("order-note").value.trim(),
-    items: cart.map((c) => ({ productId: c.productId, qty: c.qty })),
-  };
-
-  try {
-    const res = await fetch(`${API_BASE}/orders`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${auth.token}`,
-      },
-      body: JSON.stringify(payload),
-    });
-    const data = await res.json();
-    if (!res.ok) return alert(data.message || "สั่งซื้อไม่สำเร็จ");
-
-    alert(`สั่งซื้อสำเร็จ! รหัสออเดอร์: ${data._id} (ยอดรวม ฿${data.totalPrice})`);
-    cart = [];
-    renderCart();
-    e.target.reset();
-    fetchProducts();
-  } catch {
-    alert("ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้ง");
-  }
 
 document.getElementById("btn-go-login")?.addEventListener("click", () => {
   bootstrap.Modal.getInstance(document.getElementById("loginRequiredModal"))?.hide();
