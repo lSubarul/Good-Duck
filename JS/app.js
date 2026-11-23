@@ -9,8 +9,10 @@ let isRegisterMode = false;
 
 function escapeHtml(str) {
   return String(str ?? "")
-    .replace(/&/g, "&amp;").replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
 function formatCatLabel(c) {
@@ -25,8 +27,11 @@ function getCategoryBadgeHtml(categoryName) {
 }
 
 function getAuth() {
-  try { return JSON.parse(localStorage.getItem("goodduck_auth") || "null"); }
-  catch { return null; }
+  try {
+    return JSON.parse(localStorage.getItem("goodduck_auth") || "null");
+  } catch {
+    return null;
+  }
 }
 
 function setAuth(data) {
@@ -35,7 +40,6 @@ function setAuth(data) {
   syncAuthUI();
 }
 
-// ย่อขนาดรูปให้เบา (~40-80KB) แล้วแปลงเป็น Base64 เพื่อเก็บลง MongoDB
 function compressImageToBase64(file, maxWidth = 600, quality = 0.75) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -58,9 +62,6 @@ function compressImageToBase64(file, maxWidth = 600, quality = 0.75) {
   });
 }
 
-// ==========================================
-// 1. ดึงและจัดการหมวดหมู่ (MongoDB categories)
-// ==========================================
 async function fetchCategories() {
   try {
     const res = await fetch(`${API_BASE}/categories`);
@@ -193,9 +194,6 @@ window.deleteCategory = async function (id, name) {
   await fetchProducts();
 };
 
-// ==========================================
-// 2. ดึงข้อมูลสินค้าจาก MongoDB ผ่าน API
-// ==========================================
 async function fetchProducts() {
   const params = new URLSearchParams();
   if (currentCategory !== "ทั้งหมด") params.set("category", currentCategory);
@@ -234,33 +232,33 @@ function renderProducts(list) {
     return;
   }
 
-  grid.innerHTML = list.map((p) => `
-    <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
-      <div class="product-card h-100 d-flex flex-column">
-        <img src="${escapeHtml(p.image)}" alt="${escapeHtml(p.name)}" onclick="openDetail('${p._id}')">
-        <div class="p-3 d-flex flex-column flex-grow-1">
-          <span class="badge badge-cactus align-self-start mb-2">${getCategoryBadgeHtml(p.category)}</span>
-          <h6 class="fw-bold mb-1">${escapeHtml(p.name)}</h6>
-          <p class="small text-muted flex-grow-1 mb-3">${escapeHtml(p.description || "")}</p>
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <span class="fw-bold fs-5 text-cowboy">฿${p.price}</span>
-            <small class="text-muted">คงเหลือ ${p.stock}</small>
-          </div>
-          <div class="d-flex gap-2">
-            <button class="btn btn-duck-outline btn-sm flex-fill" onclick="openDetail('${p._id}')">รายละเอียด</button>
-            <button class="btn btn-cowboy btn-sm flex-fill" ${p.stock <= 0 ? "disabled" : ""} onclick="addToCart('${p._id}')">
-              ${p.stock <= 0 ? "หมด" : "+ ใส่ตะกร้า"}
-            </button>
+  grid.innerHTML = list
+    .map(
+      (p) => `
+      <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+        <div class="product-card h-100 d-flex flex-column">
+          <img src="${escapeHtml(p.image)}" alt="${escapeHtml(p.name)}" onclick="openDetail('${p._id}')">
+          <div class="p-3 d-flex flex-column flex-grow-1">
+            <span class="badge badge-cactus align-self-start mb-2">${getCategoryBadgeHtml(p.category)}</span>
+            <h6 class="fw-bold mb-1">${escapeHtml(p.name)}</h6>
+            <p class="small text-muted flex-grow-1 mb-3">${escapeHtml(p.description || "")}</p>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="fw-bold fs-5 text-cowboy">฿${p.price}</span>
+              <small class="text-muted">คงเหลือ ${p.stock}</small>
+            </div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-duck-outline btn-sm flex-fill" onclick="openDetail('${p._id}')">รายละเอียด</button>
+              <button class="btn btn-cowboy btn-sm flex-fill" ${p.stock <= 0 ? "disabled" : ""} onclick="addToCart('${p._id}')">
+                ${p.stock <= 0 ? "หมด" : "+ ใส่ตะกร้า"}
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
-  `).join("");
+      </div>`
+    )
+    .join("");
 }
 
-// ==========================================
-// 3. ดูรายละเอียดสินค้าทีละชิ้น
-// ==========================================
 window.openDetail = async function (id) {
   const res = await fetch(`${API_BASE}/products/${id}`);
   if (!res.ok) return alert("ไม่พบรายละเอียดสินค้า");
@@ -283,9 +281,6 @@ window.openDetail = async function (id) {
   new bootstrap.Modal(document.getElementById("detailModal")).show();
 };
 
-// ==========================================
-// 4. ตะกร้าสินค้า + เอฟเฟกต์เด้ง/Toast + สั่งซื้อ
-// ==========================================
 function showCartToast(message) {
   let container = document.getElementById("cart-toast-container");
   if (!container) {
@@ -361,18 +356,21 @@ function renderCart() {
     return;
   }
 
-  wrap.innerHTML = cart.map((i) => `
-    <div class="d-flex justify-content-between align-items-center border-bottom py-2">
-      <div>
-        <div class="fw-semibold">${escapeHtml(i.name)}</div>
-        <small class="text-muted">฿${i.price} x ${i.qty}</small>
-      </div>
-      <div class="btn-group btn-group-sm">
-        <button class="btn btn-outline-secondary" onclick="changeQty('${i.productId}', -1)">-</button>
-        <button class="btn btn-outline-secondary" onclick="changeQty('${i.productId}', 1)">+</button>
-      </div>
-    </div>
-  `).join("");
+  wrap.innerHTML = cart
+    .map(
+      (i) => `
+      <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+        <div>
+          <div class="fw-semibold">${escapeHtml(i.name)}</div>
+          <small class="text-muted">฿${i.price} x ${i.qty}</small>
+        </div>
+        <div class="btn-group btn-group-sm">
+          <button class="btn btn-outline-secondary" onclick="changeQty('${i.productId}', -1)">-</button>
+          <button class="btn btn-outline-secondary" onclick="changeQty('${i.productId}', 1)">+</button>
+        </div>
+      </div>`
+    )
+    .join("");
 }
 
 const phoneInput = document.getElementById("order-phone");
@@ -404,6 +402,13 @@ document.getElementById("checkout-form")?.addEventListener("submit", async (e) =
     return alert("กรุณากรอกเบอร์โทรศัพท์เป็นตัวเลขให้ครบ 10 หลัก");
   }
 
+  const submitBtn = document.getElementById("checkout-submit-btn");
+  const oldText = submitBtn ? submitBtn.innerHTML : "";
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>กำลังบันทึกออเดอร์...`;
+  }
+
   const payload = {
     customerName: auth.username,
     customerPhone: phone,
@@ -423,13 +428,24 @@ document.getElementById("checkout-form")?.addEventListener("submit", async (e) =
     const data = await res.json();
     if (!res.ok) return alert(data.message || "สั่งซื้อไม่สำเร็จ");
 
-    alert(`สั่งซื้อสำเร็จ! รหัสออเดอร์: ${data._id} (ยอดรวม ฿${data.totalPrice})`);
+    document.getElementById("success-order-id").textContent = data._id;
+    document.getElementById("success-order-total").textContent = `฿${data.totalPrice}`;
+
     cart = [];
     renderCart();
     e.target.reset();
     fetchProducts();
+
+    const cartEl = document.getElementById("cartOffcanvas");
+    bootstrap.Offcanvas.getInstance(cartEl)?.hide();
+    new bootstrap.Modal(document.getElementById("orderSuccessModal")).show();
   } catch {
     alert("ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้ง");
+  } finally {
+    if (submitBtn) {
+      submitBtn.innerHTML = oldText;
+      submitBtn.disabled = cart.length === 0;
+    }
   }
 });
 
@@ -439,9 +455,6 @@ document.getElementById("btn-go-login")?.addEventListener("click", () => {
   new bootstrap.Modal(document.getElementById("authModal")).show();
 });
 
-// ==========================================
-// 5. ระบบ Login / Register + ปุ่มเปิดดูรหัสผ่าน
-// ==========================================
 document.querySelectorAll(".toggle-pw-btn").forEach((btn) => {
   btn.addEventListener("click", () => {
     const input = document.getElementById(btn.dataset.target);
@@ -582,9 +595,6 @@ document.getElementById("login-form")?.addEventListener("submit", async (e) => {
   }
 });
 
-// ==========================================
-// 6. ระบบ Admin จัดการสินค้า + อัปโหลดรูปภาพ
-// ==========================================
 document.getElementById("pf-image-file")?.addEventListener("change", async (e) => {
   const file = e.target.files[0];
   if (!file) return;
@@ -613,19 +623,22 @@ document.getElementById("pf-image")?.addEventListener("input", (e) => {
 function renderAdminTable(list) {
   const tbody = document.getElementById("admin-product-tbody");
   if (!tbody) return;
-  tbody.innerHTML = list.map((p) => `
-    <tr>
-      <td><img src="${escapeHtml(p.image)}" width="48" height="48" class="rounded object-fit-cover"></td>
-      <td class="fw-semibold">${escapeHtml(p.name)}</td>
-      <td>${getCategoryBadgeHtml(p.category)}</td>
-      <td>฿${p.price}</td>
-      <td>${p.stock}</td>
-      <td class="text-end">
-        <button class="btn btn-sm btn-warning me-1" onclick="openEditProduct('${p._id}')"><i class="bi bi-pencil-fill"></i></button>
-        <button class="btn btn-sm btn-danger" onclick="deleteProduct('${p._id}')"><i class="bi bi-trash-fill"></i></button>
-      </td>
-    </tr>
-  `).join("");
+  tbody.innerHTML = list
+    .map(
+      (p) => `
+      <tr>
+        <td><img src="${escapeHtml(p.image)}" width="48" height="48" class="rounded object-fit-cover"></td>
+        <td class="fw-semibold">${escapeHtml(p.name)}</td>
+        <td>${getCategoryBadgeHtml(p.category)}</td>
+        <td>฿${p.price}</td>
+        <td>${p.stock}</td>
+        <td class="text-end">
+          <button class="btn btn-sm btn-warning me-1" onclick="openEditProduct('${p._id}')"><i class="bi bi-pencil-fill"></i></button>
+          <button class="btn btn-sm btn-danger" onclick="deleteProduct('${p._id}')"><i class="bi bi-trash-fill"></i></button>
+        </td>
+      </tr>`
+    )
+    .join("");
 }
 
 document.getElementById("btn-open-add-product")?.addEventListener("click", () => {
@@ -701,9 +714,6 @@ window.deleteProduct = async function (id) {
   fetchProducts();
 };
 
-// ==========================================
-// 7. ค้นหาสินค้า
-// ==========================================
 let searchTimer;
 document.getElementById("search-input")?.addEventListener("input", (e) => {
   clearTimeout(searchTimer);
@@ -713,7 +723,6 @@ document.getElementById("search-input")?.addEventListener("input", (e) => {
   }, 250);
 });
 
-// เริ่มต้นทำงาน
 syncAuthUI();
 renderCart();
 fetchCategories();

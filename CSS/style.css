@@ -39,9 +39,6 @@ body {
   overflow: hidden;
 }
 
-/* ==========================================
-   ระบบสปอตไลท์ & เวทีเป็ด (Duck Spotlight Stage)
-   ========================================== */
 .duck-spotlight-stage {
   position: relative;
   width: 100%;
@@ -54,7 +51,6 @@ body {
   padding-bottom: 45px;
 }
 
-/* โคมไฟ / ตะเกียงวินเทจ */
 .saloon-lamp {
   position: absolute;
   top: -40px;
@@ -113,7 +109,6 @@ body {
     0 0 50px rgba(255, 211, 92, 0.9);
 }
 
-/* ลำแสงสปอตไลท์ทรงกรวย */
 .spotlight-beam-cone {
   position: absolute;
   top: 15px;
@@ -132,7 +127,6 @@ body {
   animation: beamPulse 3s ease-in-out infinite alternate;
 }
 
-/* แสงเรืองรองด้านหลังน้องเป็ด */
 .spotlight-back-glow {
   position: absolute;
   top: 45%;
@@ -146,7 +140,6 @@ body {
   z-index: 1;
 }
 
-/* ประกายดาวระยิบระยับ */
 .light-sparkle {
   position: absolute;
   color: #ffd35c;
@@ -161,7 +154,6 @@ body {
 .sp-3 { top: 55%; left: 10%; animation-delay: 1.4s; font-size: 1.2rem; }
 .sp-4 { top: 48%; right: 12%; animation-delay: 0.4s; font-size: 1.3rem; }
 
-/* ตัวการ์ดน้องเป็ด */
 .hero-logo-card {
   position: relative;
   z-index: 4;
@@ -176,7 +168,6 @@ body {
   animation: duckFloat 4s ease-in-out infinite alternate;
 }
 
-/* แท่นเวทีคาวบอย */
 .duck-pedestal {
   position: relative;
   width: 220px;
@@ -207,7 +198,6 @@ body {
   pointer-events: none;
 }
 
-/* ป้ายชื่อเวที */
 .badge-stage-title {
   display: inline-block;
   margin-top: 14px;
@@ -226,7 +216,6 @@ body {
   animation: pulseBadge 2s ease-in-out infinite alternate;
 }
 
-/* แอนิเมชัน */
 @keyframes lampSway {
   0% { transform: translateX(-50%) rotate(-2deg); }
   100% { transform: translateX(-50%) rotate(2deg); }
@@ -252,9 +241,6 @@ body {
   100% { transform: scale(1.03); box-shadow: 0 4px 15px rgba(92, 58, 33, 0.35), 0 0 14px rgba(255, 211, 92, 0.6); }
 }
 
-/* ==========================================
-   องค์ประกอบทั่วไป
-   ========================================== */
 .badge-cactus {
   background: rgba(77, 124, 44, 0.14);
   color: var(--cactus-green);
@@ -327,13 +313,11 @@ body {
   border-top: 2px dashed var(--cowboy-brown);
 }
 
-/* ซ่อนปุ่มรูปตาอัตโนมัติของ Microsoft Edge เพื่อไม่ให้ซ้อนกัน */
 input[type="password"]::-ms-reveal,
 input[type="password"]::-ms-clear {
   display: none;
 }
 
-/* เอฟเฟกต์ปุ่มตะกร้าเด้งตอนเพิ่มสินค้า */
 @keyframes cartBounce {
   0% { transform: scale(1); }
   35% { transform: scale(1.22); }
@@ -345,7 +329,6 @@ input[type="password"]::-ms-clear {
   animation: cartBounce 0.35s ease;
 }
 
-/* แถบแจ้งเตือนมุมขวาล่าง (Toast) */
 #cart-toast-container {
   position: fixed;
   bottom: 24px;
@@ -378,7 +361,6 @@ input[type="password"]::-ms-clear {
   transform: translateY(0);
 }
 
-/* ให้ปุ่ม btn-cowboy ตอนถูกปิดใช้งาน (disabled) ยังเห็นสีปุ่มชัดแต่จางลง */
 .btn-cowboy:disabled,
 .btn-cowboy.disabled {
   background-color: var(--cowboy-brown) !important;
