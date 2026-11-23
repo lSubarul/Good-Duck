@@ -215,12 +215,51 @@ document.getElementById("checkout-form").addEventListener("submit", async (e) =>
 
 document.getElementById("btn-go-login")?.addEventListener("click", () => {
   bootstrap.Modal.getInstance(document.getElementById("loginRequiredModal"))?.hide();
+  setAuthMode(false);
   new bootstrap.Modal(document.getElementById("authModal")).show();
 });
 
 // ==========================================
-// 4. ระบบ Login / Register & แยกสิทธิ์ Admin
+// 4. ระบบ Login / Register (แยกหน้าตาชัดเจน) & แยกสิทธิ์ Admin
 // ==========================================
+function setAuthMode(register) {
+  isRegisterMode = register;
+  const title = document.getElementById("auth-modal-title");
+  const tabLogin = document.getElementById("tab-login");
+  const tabRegister = document.getElementById("tab-register");
+  const confirmWrap = document.getElementById("confirm-password-wrap");
+  const confirmInput = document.getElementById("login-confirm-password");
+  const submitBtn = document.getElementById("auth-submit-btn");
+  const demoBox = document.getElementById("demo-account-box");
+  const regInfoBox = document.getElementById("register-info-box");
+
+  if (register) {
+    title.innerHTML = `<i class="bi bi-person-plus-fill text-success me-2"></i>สมัครสมาชิกใหม่ Good Duck`;
+    tabLogin.className = "btn btn-sm flex-fill fw-semibold text-muted";
+    tabRegister.className = "btn btn-success btn-sm flex-fill fw-semibold";
+    confirmWrap.classList.remove("d-none");
+    confirmInput.required = true;
+    submitBtn.className = "btn btn-success fw-semibold py-2";
+    submitBtn.innerHTML = `<i class="bi bi-person-plus-fill me-1"></i>ยืนยันการสมัครสมาชิก`;
+    demoBox.classList.add("d-none");
+    regInfoBox.classList.remove("d-none");
+  } else {
+    title.innerHTML = `<i class="bi bi-box-arrow-in-right text-cowboy me-2"></i>เข้าสู่ระบบ Good Duck`;
+    tabLogin.className = "btn btn-cowboy btn-sm flex-fill fw-semibold";
+    tabRegister.className = "btn btn-sm flex-fill fw-semibold text-muted";
+    confirmWrap.classList.add("d-none");
+    confirmInput.required = false;
+    confirmInput.value = "";
+    submitBtn.className = "btn btn-cowboy fw-semibold py-2";
+    submitBtn.innerHTML = `<i class="bi bi-box-arrow-in-right me-1"></i>เข้าสู่ระบบ`;
+    demoBox.classList.remove("d-none");
+    regInfoBox.classList.add("d-none");
+  }
+}
+
+document.getElementById("tab-login")?.addEventListener("click", () => setAuthMode(false));
+document.getElementById("tab-register")?.addEventListener("click", () => setAuthMode(true));
+
 function syncAuthUI() {
   const auth = getAuth();
   const authWrap = document.getElementById("auth-btn-wrap");
@@ -249,16 +288,17 @@ function syncAuthUI() {
   adminPanel.classList.toggle("d-none", !isAdmin);
 }
 
-document.getElementById("btn-register-mode").addEventListener("click", (e) => {
-  isRegisterMode = !isRegisterMode;
-  e.target.textContent = isRegisterMode ? "มีบัญชีอยู่แล้ว? กลับไปเข้าสู่ระบบ" : "ยังไม่มีบัญชี? สมัครสมาชิก (Customer)";
-  document.querySelector("#login-form button[type=submit]").textContent = isRegisterMode ? "สมัครสมาชิก" : "เข้าสู่ระบบ";
-});
-
 document.getElementById("login-form").addEventListener("submit", async (e) => {
   e.preventDefault();
   const username = document.getElementById("login-username").value.trim();
   const password = document.getElementById("login-password").value;
+
+  if (isRegisterMode) {
+    const confirmPassword = document.getElementById("login-confirm-password").value;
+    if (password !== confirmPassword) {
+      return alert("รหัสผ่านและยืนยันรหัสผ่านไม่ตรงกัน");
+    }
+  }
 
   const endpoint = isRegisterMode ? "/auth/register" : "/auth/login";
   const res = await fetch(`${API_BASE}${endpoint}`, {
@@ -270,9 +310,9 @@ document.getElementById("login-form").addEventListener("submit", async (e) => {
   if (!res.ok) return alert(data.message || "ดำเนินการไม่สำเร็จ");
 
   if (isRegisterMode) {
-    alert("สมัครสมาชิกสำเร็จ! กรุณาเข้าสู่ระบบ");
-    isRegisterMode = false;
-    document.getElementById("btn-register-mode").click();
+    alert("สมัครสมาชิกสำเร็จ! กรุณาเข้าสู่ระบบด้วยบัญชีที่คุณเพิ่งสร้าง");
+    e.target.reset();
+    setAuthMode(false);
   } else {
     setAuth(data);
     bootstrap.Modal.getInstance(document.getElementById("authModal")).hide();
